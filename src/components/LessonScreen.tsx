@@ -67,7 +67,7 @@ export default function LessonScreen({
   const [tilesPicked, setTilesPicked] = useState<number[]>([])
   const [typed, setTyped] = useState('')
   const soundOn = state.soundOn
-  const audioLang = book?.lang ?? lang
+  const audioScope = { bookId: book?.id, lang: book?.lang ?? lang }
 
   // 문제 생성 (mp3 존재 확인 후)
   useEffect(() => {
@@ -77,7 +77,7 @@ export default function LessonScreen({
       // 범위가 한 챕터로 좁으면 그 챕터 오디오만, 아니면 책 전체를 확인한다
       const files =
         req.scope.type === 'chapter' && lesson ? lessonAudioFiles(lesson) : books.flatMap(bookAudioFiles)
-      const ok = files.length > 0 ? await checkAudioFiles(lang, files) : new Set<string>()
+      const ok = files.length > 0 ? await checkAudioFiles({ bookId: book?.id, lang }, files) : new Set<string>()
 
       const exercises: Exercise[] = buildQuiz(books, req.scope, state, requestToOptions(req, ok))
       if (alive) {
@@ -99,7 +99,7 @@ export default function LessonScreen({
     if (current && status === 'answering') {
       const ex = current.ex
       if ((ex.kind === 'pick' || ex.kind === 'bank') && ex.audioOnly && ex.promptAudio) {
-        playMp3(audioLang, ex.promptAudio)
+        playMp3(audioScope, ex.promptAudio)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -195,7 +195,7 @@ export default function LessonScreen({
         <h2 className="question">{ex.question}</h2>
 
         {ex.kind === 'pick' && (
-          <ExercisePick ex={ex} picked={picked} setPicked={setPicked} status={status} lang={audioLang} />
+          <ExercisePick ex={ex} picked={picked} setPicked={setPicked} status={status} scope={audioScope} />
         )}
         {ex.kind === 'bank' && (
           <ExerciseBank
@@ -203,7 +203,7 @@ export default function LessonScreen({
             tilesPicked={tilesPicked}
             setTilesPicked={setTilesPicked}
             status={status}
-            lang={audioLang}
+            scope={audioScope}
           />
         )}
         {ex.kind === 'type' && (

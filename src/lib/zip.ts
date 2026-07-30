@@ -122,7 +122,8 @@ export function createZip(entries: ZipEntry[], now = new Date()): Blob {
 }
 
 async function inflateRaw(data: Uint8Array): Promise<Uint8Array> {
-  const DS = (globalThis as any).DecompressionStream
+  // 구형 브라우저엔 없다 — lib.dom에 있어도 런타임 존재 확인이 필요하다
+  const DS = (globalThis as { DecompressionStream?: typeof DecompressionStream }).DecompressionStream
   if (!DS) throw new Error('이 브라우저는 압축된 zip을 읽을 수 없어요. 내보내기로 만든 원본 파일을 그대로 넣어 주세요.')
   const stream = new Blob([asBlobPart(data)]).stream().pipeThrough(new DS('deflate-raw'))
   const buf = await new Response(stream).arrayBuffer()

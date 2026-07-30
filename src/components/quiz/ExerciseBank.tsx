@@ -1,4 +1,5 @@
 import type { Exercise } from '../../types'
+import type { AudioScope } from '../../lib/audio'
 import PromptCard from './PromptCard'
 import type { Status } from './types'
 
@@ -7,15 +8,15 @@ interface Props {
   tilesPicked: number[]
   setTilesPicked: (v: number[]) => void
   status: Status
-  lang: string
+  scope: AudioScope
 }
 
 /** 단어 조각을 순서대로 눌러 문장을 완성 */
-export default function ExerciseBank({ ex, tilesPicked, setTilesPicked, status, lang }: Props) {
+export default function ExerciseBank({ ex, tilesPicked, setTilesPicked, status, scope }: Props) {
   return (
     <div>
       <PromptCard
-        lang={lang}
+        scope={scope}
         prompt={ex.prompt}
         reading={ex.promptReading}
         audio={ex.promptAudio}

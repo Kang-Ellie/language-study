@@ -410,3 +410,10 @@ code { font-family: var(--mono); background: var(--pink-soft); border-radius: 5p
 .attach-x { border: none; background: transparent; color: var(--ink-soft); font-weight: 900; margin-left: 4px; cursor: pointer; font-size: 11px; }
 .attach-img { position: relative; display: inline-flex; align-items: flex-start; }
 .attach-img .attach-x { position: absolute; top: -4px; right: -4px; background: #fff; border: var(--bd); border-radius: 999px; width: 18px; height: 18px; line-height: 1; padding: 0; }
+
+/* ── 항목 부가 정보 (예문 · 메모 · 해석 팁) ─────── */
+.vpos { font-size: 10px; font-weight: 700; color: var(--ink-soft); border: 1px solid var(--pink-soft); border-radius: 999px; padding: 1px 6px; margin-left: 6px; }
+.vexample, .vnote, .vtip { font-size: 12px; line-height: 1.6; padding: 2px 0 6px 34px; margin: 0; }
+.vexample { color: var(--ink-soft); }
+.vnote { color: var(--pink-deep); font-weight: 700; }
+.vtip { color: var(--ink-soft); font-style: italic; }

@@ -14,7 +14,7 @@ import { allItems, quizable } from '../items'
 import { buildOne, buildMatch, candidateKinds, type BuildCtx } from './builders'
 import { koTokens } from './util'
 import { makeRng, shuffle, type Rng } from './random'
-import { collectItems, countAvailable } from './scope'
+import { collectItems } from './scope'
 import { buildVocab, tokenize } from './tokenize'
 import { weightedSample } from './weight'
 import type { QuizItem, QuizOptions, QuizScope } from './types'
@@ -107,7 +107,7 @@ export function buildQuiz(books: Unit[], scope: QuizScope, state: AppState, opts
         if (matchRuns >= 2 || item.type !== 'word') continue
         matchPool.push(item)
         if (matchPool.length >= 5) {
-          made = buildMatch(matchPool.splice(0, 5), ctx)
+          made = buildMatch(matchPool.splice(0, 5))
           if (made) matchRuns++
         }
         if (made) break

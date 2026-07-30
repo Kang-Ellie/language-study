@@ -37,7 +37,7 @@ export default function BookPage({ books, book, state, onQuiz, onBack, onOpenCha
 
   useEffect(() => {
     const files = bookAudioFiles(book)
-    if (files.length > 0) checkAudioFiles(lang, files).then(setAudioOk)
+    if (files.length > 0) checkAudioFiles({ bookId: book.id, lang }, files).then(setAudioOk)
   }, [book, lang])
 
   const scopeChoices: ScopeChoice[] = [

@@ -19,6 +19,7 @@ export interface RawWord {
   meaning?: string
   audio?: string
   pos?: string
+  example?: string
   note?: string
   quizEnabled?: boolean
 }
@@ -120,6 +121,7 @@ function normalizeWord(raw: RawWord, mint: IdMinter, sectionId: string, i: numbe
   if (raw.reading) w.reading = raw.reading
   if (raw.audio) w.audio = raw.audio
   if (raw.pos) w.pos = raw.pos
+  if (raw.example) w.example = raw.example
   if (raw.note) w.note = raw.note
   if (raw.quizEnabled === false) w.quizEnabled = false
   return w

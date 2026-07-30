@@ -64,7 +64,7 @@ function buildPick(item: QuizItem, ctx: BuildCtx): Exercise | null {
 
 // ── 짝 맞추기 (단어 여러 개를 한 번에) ───────────────────
 
-export function buildMatch(items: QuizItem[], ctx: BuildCtx): Exercise | null {
+export function buildMatch(items: QuizItem[]): Exercise | null {
   const words = items.filter((i) => i.type === 'word')
   if (words.length < 3) return null
   const chosen = words.slice(0, 5)
@@ -159,7 +159,7 @@ function buildFill(item: QuizItem, ctx: BuildCtx): Exercise | null {
 
 // ── 타이핑 ───────────────────────────────────────────────
 
-function buildType(item: QuizItem, ctx: BuildCtx): Exercise | null {
+function buildType(item: QuizItem): Exercise | null {
   // 로마자로 입력할 수 있는 언어는 원문을 쓰게 하고, 그 외는 뜻을 쓰게 한다.
   // (중국어·일본어 원문 타이핑은 IME가 필요해서 학습이 아니라 입력 씨름이 된다)
   const typableSource = item.lang === 'en'
@@ -215,7 +215,7 @@ export function buildOne(item: QuizItem, kind: QuizKind, ctx: BuildCtx): Exercis
     case 'fill':
       return buildFill(item, ctx)
     case 'type':
-      return buildType(item, ctx)
+      return buildType(item)
     case 'listen':
       return buildListen(item, ctx)
     case 'match':

@@ -3,19 +3,43 @@
 // 부모(Editor)가 인덱스를 들고 있던 걸 `update(fn)` 콜백 하나로 바꿨다.
 // 이 컴포넌트는 자기가 몇 번째 소단원인지 알 필요가 없다.
 import { useState } from 'react'
-import type { Section } from '../types'
+import type { Section, SectionKind } from '../types'
 import { newGrammar, newGrammarExample, newSentence, newWord } from '../lib/normalize'
 import AudioField from './AudioField'
 import ImageThumb from './ImageThumb'
 
 interface Props {
   section: Section
+  bookId: string
   lang: string
   /** 소단원이 하나뿐이면 지울 수 없다 */
   canDelete: boolean
   update: (fn: (s: Section) => void) => void
   onDelete: () => void
   onPickImages: () => void
+}
+
+const SECTION_KINDS: { id: SectionKind; label: string }[] = [
+  { id: 'passage', label: '📖 본문·회화' },
+  { id: 'vocab', label: '🔤 핵심 어휘' },
+  { id: 'grammar', label: '📐 문법' },
+  { id: 'writing', label: '✍️ 작문' },
+  { id: 'speaking', label: '🗣 말하기' },
+  { id: 'listening', label: '🔊 듣기' },
+]
+
+/** 이 항목을 퀴즈에 낼지 — 고유명사처럼 외울 필요 없는 것을 끈다 */
+function QuizToggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      className={`pill tiny ${on ? '' : 'soft'}`}
+      title={on ? '퀴즈에 출제됩니다 (누르면 제외)' : '퀴즈에서 제외됨 (누르면 포함)'}
+      onClick={() => onChange(!on)}
+    >
+      {on ? '🎯 출제' : '🚫 제외'}
+    </button>
+  )
 }
 
 /** 본문 전체 텍스트를 문장 부호 기준으로 쪼갬 (퀴즈용 문장 자동 생성) */
@@ -26,7 +50,8 @@ export function splitPassage(text: string): string[] {
     .filter(Boolean)
 }
 
-export default function SectionEditor({ section, lang, canDelete, update, onDelete, onPickImages }: Props) {
+export default function SectionEditor({ section, bookId, lang, canDelete, update, onDelete, onPickImages }: Props) {
+  const scope = { bookId, lang }
   const [openDetail, setOpenDetail] = useState(false)
   const showReading = lang !== 'en' // 영어는 발음·분절 칸이 필요 없다
 
@@ -43,6 +68,20 @@ export default function SectionEditor({ section, lang, canDelete, update, onDele
         {canDelete && (
           <button className="mini-del" title="소카테고리 삭제" onClick={onDelete}>🗑</button>
         )}
+      </div>
+
+      {/* 성격 태그 — 퀴즈 범위를 고를 때 "작문만" 처럼 걸러 쓰기 위한 것. 선택 사항 */}
+      <div className="edit-line">
+        <label className="mini-label">성격 (선택)</label>
+        <select
+          value={section.kind ?? ''}
+          onChange={(e) => update((s) => { s.kind = (e.target.value || undefined) as SectionKind | undefined })}
+        >
+          <option value="">— 지정 안 함 —</option>
+          {SECTION_KINDS.map((k) => (
+            <option key={k.id} value={k.id}>{k.label}</option>
+          ))}
+        </select>
       </div>
 
       {/* 첨부 이미지 (교재 페이지 스캔 등) */}
@@ -81,7 +120,7 @@ export default function SectionEditor({ section, lang, canDelete, update, onDele
         />
         <div className="edit-line">
           <AudioField
-            lang={lang}
+            scope={scope}
             value={section.passageAudio}
             slug={section.title}
             onChange={(f) => update((s) => { s.passageAudio = f })}
@@ -139,7 +178,7 @@ export default function SectionEditor({ section, lang, canDelete, update, onDele
               </div>
               <div className="edit-line">
                 <AudioField
-                  lang={lang}
+                  scope={scope}
                   value={p.audio}
                   slug={p.text}
                   onChange={(f) => update((s) => { s.passages[pi].audio = f })}
@@ -154,6 +193,17 @@ export default function SectionEditor({ section, lang, canDelete, update, onDele
                     }
                   />
                 )}
+              </div>
+              <div className="edit-line">
+                <input
+                  value={p.tip ?? ''}
+                  placeholder="💡 해석 팁 (선택) — 어순·뉘앙스 메모"
+                  onChange={(e) => update((s) => { s.passages[pi].tip = e.target.value || undefined })}
+                />
+                <QuizToggle
+                  on={p.quizEnabled !== false}
+                  onChange={(v) => update((s) => { s.passages[pi].quizEnabled = v ? undefined : false })}
+                />
               </div>
             </div>
           ))}
@@ -188,12 +238,36 @@ export default function SectionEditor({ section, lang, canDelete, update, onDele
             />
             <button className="mini-del" onClick={() => update((s) => { s.words.splice(wi, 1) })}>✕</button>
           </div>
-          <AudioField
-            lang={lang}
-            value={w.audio}
-            slug={w.text}
-            onChange={(f) => update((s) => { s.words[wi].audio = f })}
-          />
+          <div className="edit-line">
+            <AudioField
+              scope={scope}
+              value={w.audio}
+              slug={w.text}
+              onChange={(f) => update((s) => { s.words[wi].audio = f })}
+            />
+            <input
+              className="tok"
+              value={w.pos ?? ''}
+              placeholder="품사 (명사/동사…)"
+              onChange={(e) => update((s) => { s.words[wi].pos = e.target.value || undefined })}
+            />
+            <QuizToggle
+              on={w.quizEnabled !== false}
+              onChange={(v) => update((s) => { s.words[wi].quizEnabled = v ? undefined : false })}
+            />
+          </div>
+          <div className="edit-line">
+            <input
+              value={w.example ?? ''}
+              placeholder="📝 예문 (선택)"
+              onChange={(e) => update((s) => { s.words[wi].example = e.target.value || undefined })}
+            />
+            <input
+              value={w.note ?? ''}
+              placeholder="✏️ 나의 메모 (선택)"
+              onChange={(e) => update((s) => { s.words[wi].note = e.target.value || undefined })}
+            />
+          </div>
         </div>
       ))}
       <button className="pill soft" onClick={() => update((s) => { s.words.push(newWord(s.id)) })}>＋ 새단어</button>

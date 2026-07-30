@@ -270,3 +270,93 @@ describe('rekeyBook', () => {
     expect(moved.title).toBe('데모 교재')
   })
 })
+
+
+describe('원 요청서의 항목 부가 정보', () => {
+  it('단어의 품사·예문·메모를 보존한다', () => {
+    const book = normalizeBook(
+      {
+        id: 'b',
+        lang: 'zh',
+        title: 't',
+        lessons: [
+          {
+            title: '1과',
+            sections: [
+              {
+                title: 's',
+                words: [
+                  { text: '去', meaning: '가다', pos: '동사', example: '我去学校。', note: '자꾸 헷갈림' },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      'f'
+    )
+    const w = book.lessons[0].sections[0].words[0]
+    expect(w.pos).toBe('동사')
+    expect(w.example).toBe('我去学校。')
+    expect(w.note).toBe('자꾸 헷갈림')
+  })
+
+  it('문장의 해석 팁을 보존한다', () => {
+    const book = normalizeBook(
+      {
+        id: 'b',
+        lang: 'zh',
+        title: 't',
+        lessons: [
+          { title: '1과', sections: [{ title: 's', passages: [{ text: '你去哪儿？', meaning: '어디 가?', tip: '哪儿는 구어체' }] }] },
+        ],
+      },
+      'f'
+    )
+    expect(book.lessons[0].sections[0].passages[0].tip).toBe('哪儿는 구어체')
+  })
+
+  it('출제 제외 플래그와 소단원 성격을 보존한다', () => {
+    const book = normalizeBook(
+      {
+        id: 'b',
+        lang: 'zh',
+        title: 't',
+        lessons: [
+          {
+            title: '1과',
+            sections: [
+              { title: 's', kind: 'writing', words: [{ text: '金浩', meaning: '김호', quizEnabled: false }] },
+            ],
+          },
+        ],
+      },
+      'f'
+    )
+    expect(book.lessons[0].sections[0].kind).toBe('writing')
+    expect(book.lessons[0].sections[0].words[0].quizEnabled).toBe(false)
+  })
+
+  it('부가 정보는 멱등이다 (두 번 정규화해도 그대로)', () => {
+    const raw = {
+      id: 'b',
+      lang: 'zh',
+      title: 't',
+      lessons: [
+        {
+          title: '1과',
+          sections: [
+            {
+              title: 's',
+              kind: 'vocab',
+              words: [{ text: '去', meaning: '가다', pos: '동사', example: '예문', note: '메모', quizEnabled: false }],
+              passages: [{ text: '你好', meaning: '안녕', tip: '팁' }],
+            },
+          ],
+        },
+      ],
+    }
+    const once = normalizeBook(raw, 'f')
+    expect(normalizeBook(once, 'f')).toEqual(once)
+  })
+})

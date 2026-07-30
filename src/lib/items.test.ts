@@ -16,8 +16,9 @@ const book: Unit = normalizeBook(
             title: '회화',
             kind: 'passage',
             words: [
-              { text: '去', reading: 'qù', meaning: '가다', pos: '동사' },
+              { text: '去', reading: 'qù', meaning: '가다', pos: '동사', example: '我去学校', note: '자주 틀림' },
               { text: '빈뜻', meaning: '' }, // 뜻 없음 → 출제 제외
+              { text: '金浩', meaning: '김호(이름)', quizEnabled: false }, // 고유명사 → 출제 제외
             ],
             passages: [{ text: '我去学校。', meaning: '나는 학교에 가요', tokens: ['我', '去', '学校'] }],
             grammar: [
@@ -36,8 +37,8 @@ describe('sectionItems', () => {
   const items = sectionItems(book, book.lessons[0], book.lessons[0].sections[0])
 
   it('새단어 · 본문 문장 · 문법 예문을 한 줄로 편다', () => {
-    expect(items).toHaveLength(4) // 단어 2 + 문장 1 + 문법 예문 1
-    expect(items.map((i) => i.type)).toEqual(['word', 'word', 'sentence', 'sentence'])
+    expect(items).toHaveLength(5) // 단어 3 + 문장 1 + 문법 예문 1
+    expect(items.map((i) => i.type)).toEqual(['word', 'word', 'word', 'sentence', 'sentence'])
   })
 
   it('문법 예문도 빠짐없이 들어온다', () => {
@@ -67,18 +68,24 @@ describe('sectionItems', () => {
     expect(items.map((i) => i.id)).toEqual([
       'zh-t/c1/s1/w1',
       'zh-t/c1/s1/w2',
+      'zh-t/c1/s1/w3',
       'zh-t/c1/s1/p1',
       'zh-t/c1/s1/g1/e1',
     ])
+  })
+
+  it('출제 제외 플래그를 싣는다', () => {
+    expect(items.find((i) => i.text === '金浩')!.quizEnabled).toBe(false)
+    expect(items.find((i) => i.text === '去')!.quizEnabled).toBe(true)
   })
 })
 
 describe('chapterItems / bookItems / allItems', () => {
   it('계층이 올라갈수록 누적된다', () => {
-    expect(chapterItems(book, book.lessons[0])).toHaveLength(4)
+    expect(chapterItems(book, book.lessons[0])).toHaveLength(5)
     expect(chapterItems(book, book.lessons[1])).toHaveLength(1)
-    expect(bookItems(book)).toHaveLength(5)
-    expect(allItems([book, book])).toHaveLength(10)
+    expect(bookItems(book)).toHaveLength(6)
+    expect(allItems([book, book])).toHaveLength(12)
   })
 })
 
@@ -86,6 +93,12 @@ describe('quizable', () => {
   it('뜻이 빈 항목을 뺀다', () => {
     const out = quizable(bookItems(book))
     expect(out.find((i) => i.text === '빈뜻')).toBeUndefined()
+  })
+
+  it('출제 제외(quizEnabled: false)한 항목을 뺀다', () => {
+    // 고유명사처럼 외울 필요 없는 것. v4 전에는 타입에만 있고 아무도 안 읽는 죽은 필드였다
+    const out = quizable(bookItems(book))
+    expect(out.find((i) => i.text === '金浩')).toBeUndefined()
     expect(out).toHaveLength(4)
   })
 

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { hasAudioStored, putAudio } from '../lib/audioStore'
-import { playMp3 } from '../lib/audio'
+import { putAudio } from '../lib/audioStore'
+import { audioExists, playMp3, uploadNamespace, type AudioScope } from '../lib/audio'
 
 interface Props {
-  lang: string
+  scope: AudioScope
   value: string | undefined // 파일명
   onChange: (file: string | undefined) => void
   slug?: string // 업로드 시 자동 파일명 힌트
@@ -18,20 +18,21 @@ function slugify(s: string): string {
 }
 
 /** mp3 파일명 입력 + 업로드(IndexedDB) + 재생 — 둘 다 지원 */
-export default function AudioField({ lang, value, onChange, slug }: Props) {
+export default function AudioField({ scope, value, onChange, slug }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [stored, setStored] = useState(false)
 
   useEffect(() => {
-    if (value) hasAudioStored(lang, value).then(setStored)
+    if (value) audioExists(scope, value).then(setStored)
     else setStored(false)
-  }, [lang, value])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope.bookId, scope.lang, value])
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     const name = value && value.trim() ? value.trim() : `${slugify(slug ?? '')}-${Date.now()}.mp3`
-    await putAudio(lang, name, file)
+    await putAudio(uploadNamespace(scope), name, file)
     setStored(true)
     onChange(name)
     e.target.value = ''
@@ -49,7 +50,7 @@ export default function AudioField({ lang, value, onChange, slug }: Props) {
         {stored ? '✓' : '⬆'}
       </button>
       {value && (
-        <button type="button" className="af-btn" title="미리 듣기" onClick={() => playMp3(lang, value)}>
+        <button type="button" className="af-btn" title="미리 듣기" onClick={() => playMp3(scope, value)}>
           🔊
         </button>
       )}

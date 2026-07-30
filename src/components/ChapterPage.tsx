@@ -44,9 +44,9 @@ export default function ChapterPage({
 
   useEffect(() => {
     const files = lessonAudioFiles(chapter)
-    if (files.length > 0) checkAudioFiles(lang, files).then(setAudioOk)
+    if (files.length > 0) checkAudioFiles({ bookId: book.id, lang }, files).then(setAudioOk)
     else setAudioOk(new Set())
-  }, [lang, chapter])
+  }, [book.id, lang, chapter])
 
   // 소단원이 여럿일 때만 소단원 범위를 따로 보여준다 (하나뿐이면 챕터와 같다)
   const scopeChoices: ScopeChoice[] = [

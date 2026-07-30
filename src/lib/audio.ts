@@ -1,8 +1,11 @@
 // 효과음(WebAudio 생성)과 mp3 재생 — 외부 요청 0회
+/** 사파리는 아직 접두사 붙은 이름만 있는 경우가 있다 */
+type WebkitWindow = Window & { webkitAudioContext?: typeof AudioContext }
+
 let ctx: AudioContext | null = null
 
 function audioCtx(): AudioContext {
-  if (!ctx) ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+  if (!ctx) ctx = new (window.AudioContext ?? (window as WebkitWindow).webkitAudioContext!)()
   return ctx
 }
 
@@ -47,43 +50,79 @@ export function playFanfare() {
 
 import { getAudioBlob, hasAudioStored } from './audioStore'
 
-function folderUrl(courseId: string, file: string): string {
-  return `${import.meta.env.BASE_URL}audio/${courseId}/${file}`
+/**
+ * mp3를 어디서 찾을지.
+ *
+ * 예전에는 **언어** 하나만 네임스페이스로 썼다. 그래서 같은 언어의 두 책에
+ * `1.mp3`를 각각 올리면 뒤에 올린 것이 앞의 것을 덮어썼다.
+ * 이제 업로드는 **책 단위**로 저장하고, 찾을 때는 세 곳을 차례로 본다.
+ *
+ *   1. IndexedDB `<bookId>/<파일>`   ← 지금 업로드하는 곳
+ *   2. IndexedDB `<lang>/<파일>`     ← 예전에 올린 것 + 여러 책이 함께 쓰는 것
+ *   3. 폴더 `public/audio/<lang>/<파일>`
+ *
+ * 2·3을 남겨 둔 덕에 이미 올린 파일을 옮기지 않아도 그대로 들린다.
+ * 폴더 경로는 사용자가 직접 관리하는 파일이라 언어 단위 그대로 둔다.
+ */
+export interface AudioScope {
+  /** 책 id. 없으면 언어 네임스페이스만 본다(내 녹음 등) */
+  bookId?: string
+  lang: string
 }
 
-/** 재생용 URL 확보 — 업로드된 파일(IndexedDB) 우선, 없으면 폴더 */
-async function resolveUrl(courseId: string, file: string): Promise<string> {
-  const blob = await getAudioBlob(courseId, file)
-  if (blob) return URL.createObjectURL(blob)
-  return folderUrl(courseId, file)
+function folderUrl(lang: string, file: string): string {
+  return `${import.meta.env.BASE_URL}audio/${lang}/${file}`
+}
+
+/** 업로드는 항상 책 네임스페이스로 (없으면 언어) */
+export function uploadNamespace(scope: AudioScope): string {
+  return scope.bookId ?? scope.lang
+}
+
+/** 재생용 URL 확보 — 책 → 언어 → 폴더 순 */
+async function resolveUrl(scope: AudioScope, file: string): Promise<string> {
+  if (scope.bookId) {
+    const own = await getAudioBlob(scope.bookId, file)
+    if (own) return URL.createObjectURL(own)
+  }
+  const shared = await getAudioBlob(scope.lang, file)
+  if (shared) return URL.createObjectURL(shared)
+  return folderUrl(scope.lang, file)
 }
 
 /** mp3 재생 (업로드 파일 또는 public/audio/ 폴더) */
-export async function playMp3(courseId: string, file: string) {
+export async function playMp3(scope: AudioScope | string, file: string) {
+  const s: AudioScope = typeof scope === 'string' ? { lang: scope } : scope
   try {
-    const url = await resolveUrl(courseId, file)
+    const url = await resolveUrl(s, file)
     const a = new Audio(url)
     await a.play()
   } catch {}
+}
+
+/** 이 파일이 어딘가에 실제로 있는지 */
+export async function audioExists(scope: AudioScope, file: string): Promise<boolean> {
+  if (scope.bookId && (await hasAudioStored(scope.bookId, file))) return true
+  if (await hasAudioStored(scope.lang, file)) return true
+  try {
+    const res = await fetch(folderUrl(scope.lang, file), { method: 'HEAD' })
+    const type = res.headers.get('content-type') || ''
+    return res.ok && !type.includes('text/html')
+  } catch {
+    return false
+  }
 }
 
 /**
  * mp3가 실제로 존재하는지 확인 (업로드됨 OR 폴더에 있음).
  * 존재하는 항목만 듣기 문제를 출제하고 🔊 버튼을 표시하기 위함.
  */
-export async function checkAudioFiles(courseId: string, files: string[]): Promise<Set<string>> {
+export async function checkAudioFiles(scope: AudioScope | string, files: string[]): Promise<Set<string>> {
+  const s: AudioScope = typeof scope === 'string' ? { lang: scope } : scope
   const ok = new Set<string>()
   await Promise.all(
     files.map(async (f) => {
-      if (await hasAudioStored(courseId, f)) {
-        ok.add(f)
-        return
-      }
-      try {
-        const res = await fetch(folderUrl(courseId, f), { method: 'HEAD' })
-        const type = res.headers.get('content-type') || ''
-        if (res.ok && !type.includes('text/html')) ok.add(f)
-      } catch {}
+      if (await audioExists(s, f)) ok.add(f)
     })
   )
   return ok

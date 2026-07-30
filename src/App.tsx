@@ -54,6 +54,8 @@ export default function App({ report }: { report?: MigrationReport }) {
   }, [state])
 
   // 모든 책 (내장 + 내 책). 언어 필터는 화면에서 건다.
+  // bookVer는 localStorage 변경을 알리는 신호다 — eslint는 외부 저장소를 모른다.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const allBooks = useMemo(() => getAllBooks(), [bookVer])
   const langBooks = useMemo(() => booksOfLang(allBooks, state.lang), [allBooks, state.lang])
 

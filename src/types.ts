@@ -33,8 +33,9 @@ export interface Word {
   text: string
   reading?: string // 병음(중국어) / 후리가나(일본어)
   meaning: string
-  audio?: string // 파일명 (IndexedDB 또는 public/audio/<courseId>/)
+  audio?: string // 파일명 (IndexedDB 또는 public/audio/<lang>/)
   pos?: string // 품사 — 오답 보기 생성에 사용 (선택)
+  example?: string // 예문
   note?: string // 나의 메모
   quizEnabled?: boolean // 기본 true. 고유명사 등 출제 제외용
 }
@@ -121,6 +122,8 @@ export interface StudyItem {
   audio?: string
   tokens?: string[] // sentence
   pos?: string // word
+  /** false면 출제하지 않는다 (고유명사 등) */
+  quizEnabled?: boolean
   bookId: string
   chapterId: string
   sectionId: string

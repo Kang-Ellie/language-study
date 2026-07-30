@@ -255,6 +255,7 @@ export default function Editor({ lang, initial, onDone, onBack }: Props) {
                     <SectionEditor
                       key={section.id}
                       section={section}
+                      bookId={book.id}
                       lang={book.lang}
                       canDelete={lesson.sections.length > 1}
                       update={(fn) => mutate((b) => fn(sec(b, li, si)))}

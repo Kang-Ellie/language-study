@@ -17,6 +17,7 @@ interface Props {
 /** 소단원 하나 — 본문 · 문장 · 새단어 · 문법 · 첨부 이미지 */
 export default function SectionView({ book, chapter, section, audioOk, state }: Props) {
   const lang = book.lang
+  const scope = { bookId: book.id, lang }
 
   // 빈 소단원은 점선 회색 카드로 — "여기 아직 안 채웠다"가 눈에 보이게
   if (!sectionHasContent(section)) {
@@ -32,7 +33,7 @@ export default function SectionView({ book, chapter, section, audioOk, state }: 
 
   const Speaker = ({ file, label }: { file?: string; label?: string }) =>
     file && audioOk.has(file) ? (
-      <button className="spk" onClick={() => playMp3(lang, file)} title={label}>🔊</button>
+      <button className="spk" onClick={() => playMp3(scope, file)} title={label}>🔊</button>
     ) : (
       <span className="spk off">·</span>
     )
@@ -59,7 +60,7 @@ export default function SectionView({ book, chapter, section, audioOk, state }: 
           <div className="content-kind">
             📖 본문
             {section.passageAudio && audioOk.has(section.passageAudio) && (
-              <button className="spk inline" onClick={() => playMp3(lang, section.passageAudio!)}>🔊 전체 듣기</button>
+              <button className="spk inline" onClick={() => playMp3(scope, section.passageAudio!)}>🔊 전체 듣기</button>
             )}
           </div>
           <p className="passage-text">{section.passageText}</p>
@@ -71,13 +72,16 @@ export default function SectionView({ book, chapter, section, audioOk, state }: 
         <>
           <div className="content-kind">🔎 문장별 보기 (퀴즈·개별듣기용)</div>
           {section.passages.map((p) => (
-            <div key={p.id} className="vrow">
-              <Speaker file={p.audio} label="선생님 녹음" />
-              <div className="vtext">
-                {p.reading && <span className="vreading">{p.reading}</span>}
-                <span className="vmain">{p.text}</span>
+            <div key={p.id}>
+              <div className="vrow">
+                <Speaker file={p.audio} label="선생님 녹음" />
+                <div className="vtext">
+                  {p.reading && <span className="vreading">{p.reading}</span>}
+                  <span className="vmain">{p.text}</span>
+                </div>
+                <div className="vmean">{p.meaning}</div>
               </div>
-              <div className="vmean">{p.meaning}</div>
+              {p.tip && <div className="vtip">💡 {p.tip}</div>}
             </div>
           ))}
         </>
@@ -87,13 +91,18 @@ export default function SectionView({ book, chapter, section, audioOk, state }: 
         <>
           <div className="content-kind">🔤 새단어</div>
           {section.words.map((w) => (
-            <div key={w.id} className="vrow">
-              <Speaker file={w.audio} />
-              <div className="vtext">
-                {w.reading && <span className="vreading">{w.reading}</span>}
-                <span className="vmain">{w.text}</span>
+            <div key={w.id}>
+              <div className="vrow">
+                <Speaker file={w.audio} />
+                <div className="vtext">
+                  {w.reading && <span className="vreading">{w.reading}</span>}
+                  <span className="vmain">{w.text}</span>
+                  {w.pos && <span className="vpos">{w.pos}</span>}
+                </div>
+                <div className="vmean">{w.meaning}</div>
               </div>
-              <div className="vmean">{w.meaning}</div>
+              {w.example && <div className="vexample">📝 {w.example}</div>}
+              {w.note && <div className="vnote">✏️ {w.note}</div>}
             </div>
           ))}
         </>

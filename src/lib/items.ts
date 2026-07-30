@@ -42,6 +42,7 @@ export function sectionItems(book: Unit, chapter: Lesson, section: Section): Stu
       meaning: w.meaning,
       audio: w.audio,
       pos: w.pos,
+      quizEnabled: w.quizEnabled !== false,
     })
   }
   const sentences = [...section.passages, ...section.grammar.flatMap((g) => g.examples)]
@@ -55,6 +56,7 @@ export function sectionItems(book: Unit, chapter: Lesson, section: Section): Stu
       meaning: s.meaning,
       audio: s.audio,
       tokens: s.tokens,
+      quizEnabled: s.quizEnabled !== false,
     })
   }
   return out
@@ -74,14 +76,15 @@ export function allItems(books: Unit[]): StudyItem[] {
 
 /**
  * 출제 가능한 항목만 남긴다.
- *  - quizEnabled === false 인 것은 애초에 투영에서 제외할 수 없으니(플래그가 원본에 있다)
- *    여기서는 텍스트·뜻이 비어 있는 것만 거른다. 상세 규칙은 4단계 collectItems에서.
+ *  - quizEnabled === false (고유명사 등 사용자가 끈 것)
+ *  - 원문 또는 뜻이 비어 있는 것
  *  - 같은 텍스트가 여러 번 나오면 앞의 것만 (같은 문제가 두 번 나오는 것 방지)
  */
 export function quizable(items: StudyItem[]): StudyItem[] {
   const seen = new Set<string>()
   const out: StudyItem[] = []
   for (const it of items) {
+    if (it.quizEnabled === false) continue
     if (!it.text.trim() || !it.meaning.trim()) continue
     const key = `${it.type}:${it.text}`
     if (seen.has(key)) continue
