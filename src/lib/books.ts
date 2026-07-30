@@ -40,13 +40,6 @@ export function booksOfLang(books: Unit[], lang: string): Unit[] {
   return books.filter((b) => b.lang === lang)
 }
 
-/** 책이 실제로 존재하는 언어 목록 (책장 탭 구성용) */
-export function langsWithBooks(books: Unit[]): string[] {
-  const out: string[] = []
-  for (const b of books) if (!out.includes(b.lang)) out.push(b.lang)
-  return out
-}
-
 /** 내장 책인지 (내장이면 삭제 시 "되돌리기"가 됨) */
 export function isBuiltinBook(bookId: string): boolean {
   return builtinBooks.some((u) => u.id === bookId)

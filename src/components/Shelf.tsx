@@ -1,7 +1,7 @@
 import type { Unit } from '../types'
 import { doneChapterCount, type AppState } from '../lib/storage'
 import { LANGUAGES } from '../data'
-import { dueWords } from '../lib/srs'
+import { dueItems } from '../lib/srs'
 import { isCustomBook } from '../lib/books'
 import Marquee from './Marquee'
 import Taskbar from './Taskbar'
@@ -33,7 +33,7 @@ function exeName(book: { id: string }): string {
 }
 
 export default function Shelf({ state, setState, books, onOpenBook, onNewBook, onStartReview, onProfile }: Props) {
-  const due = dueWords(state, books)
+  const due = dueItems(state, books)
   const language = LANGUAGES.find((l) => l.id === state.lang) ?? LANGUAGES[0]
   const goalPct = Math.min(100, Math.round((state.xpToday / state.dailyGoal) * 100))
 
@@ -68,7 +68,7 @@ export default function Shelf({ state, setState, books, onOpenBook, onNewBook, o
             <div className="goal-bar"><div className="goal-fill" style={{ width: `${goalPct}%` }} /></div>
             {due.length > 0 && (
               <button className="review-banner" onClick={onStartReview}>
-                🔔 복습할 단어 <b>{due.length}개</b> — 잊기 전에 복습해요! {state.heartsEnabled && state.hearts < 5 ? '(💗 회복)' : ''}
+                🔔 복습할 것 <b>{due.length}개</b> — 잊기 전에 복습해요! {state.heartsEnabled && state.hearts < 5 ? '(💗 회복)' : ''}
               </button>
             )}
           </div>

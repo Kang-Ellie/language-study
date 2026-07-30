@@ -1,5 +1,6 @@
-// 챕터·책의 단어/문장 접근 헬퍼.
-// 정규화(normalize.ts)를 거친 데이터만 들어오므로 하위호환 분기가 없다.
+// 책·챕터의 항목 접근 헬퍼.
+// 퀴즈는 이 파일이 아니라 items.ts의 StudyItem 투영을 쓴다. 여기 남은 건
+// 화면이 직접 필요로 하는 것(오디오 존재 확인)과 통계용뿐이다.
 import type { Lesson, Section, Sentence, Unit, Word } from '../types'
 
 /** 소단원의 모든 문장 (본문 문장 + 문법 예문) */
@@ -7,31 +8,9 @@ export function sectionSentences(section: Section): Sentence[] {
   return [...section.passages, ...section.grammar.flatMap((g) => g.examples)]
 }
 
-/** 챕터의 모든 단어 (새단어) */
-export function lessonWords(lesson: Lesson): Word[] {
-  return lesson.sections.flatMap((s) => s.words)
-}
-
-/** 챕터의 모든 문장 (본문 + 문법 예문) */
-export function lessonSentences(lesson: Lesson): Sentence[] {
-  return lesson.sections.flatMap(sectionSentences)
-}
-
-/** 이 챕터에 학습할 내용이 있는지 */
-export function lessonHasContent(lesson: Lesson): boolean {
-  return lesson.sections.some(
-    (s) => s.words.length > 0 || s.passages.length > 0 || s.grammar.length > 0 || !!s.passageText
-  )
-}
-
-/** 책의 모든 단어 */
+/** 책의 모든 단어 — 학습한 단어 수 집계용 */
 export function bookWords(book: Unit): Word[] {
-  return book.lessons.flatMap(lessonWords)
-}
-
-/** 책의 모든 문장 */
-export function bookSentences(book: Unit): Sentence[] {
-  return book.lessons.flatMap(lessonSentences)
+  return book.lessons.flatMap((l) => l.sections.flatMap((s) => s.words))
 }
 
 /** 소단원 안에서 오디오 파일명을 갖는 항목 전부 (존재 확인용) */

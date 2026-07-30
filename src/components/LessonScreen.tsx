@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Exercise, Lesson, LessonResult, Unit } from '../types'
 import type { AppState } from '../lib/storage'
-import { updateSrs, dueWords } from '../lib/srs'
-import { allWordsOf, buildLessonExercises, buildReviewExercises, normalize } from '../lib/exercises'
-import { lessonAudioFiles } from '../lib/lessonModel'
+import { updateSrs, type Outcome } from '../lib/srs'
+import { buildQuiz, defaultOptions, grade as gradeAnswer, type QuizScope } from '../lib/quiz'
+import { bookAudioFiles, lessonAudioFiles } from '../lib/lessonModel'
 import { playCorrect, playWrong, playMp3, checkAudioFiles } from '../lib/audio'
 
 interface Props {
@@ -32,6 +32,7 @@ export default function LessonScreen({ lang, books, book, lesson, isReview, stat
   const [firstTryCorrect, setFirstTryCorrect] = useState(0)
   const [baseTotal, setBaseTotal] = useState(0)
   const [noHearts, setNoHearts] = useState(false)
+  const [nearMiss, setNearMiss] = useState(false)
 
   // 답안 상태
   const [picked, setPicked] = useState<string | null>(null)
@@ -43,16 +44,16 @@ export default function LessonScreen({ lang, books, book, lesson, isReview, stat
   useEffect(() => {
     let alive = true
     async function build() {
-      let exercises: Exercise[]
-      if (isReview) {
-        const due = dueWords(state, books)
-        exercises = buildReviewExercises(lang, due, allWordsOf(books))
-      } else if (book && lesson) {
-        const ok = await checkAudioFiles(book.lang, lessonAudioFiles(lesson))
-        exercises = buildLessonExercises(book, lesson, books, ok)
-      } else {
-        exercises = []
-      }
+      // 복습은 책 전체의 오디오를, 챕터 퀴즈는 그 챕터의 오디오만 확인하면 된다
+      const files = isReview ? books.flatMap(bookAudioFiles) : lesson ? lessonAudioFiles(lesson) : []
+      const ok = files.length > 0 ? await checkAudioFiles(lang, files) : new Set<string>()
+
+      const scope: QuizScope | null = isReview
+        ? { type: 'review' }
+        : lesson
+          ? { type: 'chapter', chapterId: lesson.id }
+          : null
+      const exercises: Exercise[] = scope ? buildQuiz(books, scope, state, defaultOptions(scope, ok)) : []
       if (alive) {
         setItems(exercises.map((ex) => ({ ex, retry: false })))
         setBaseTotal(exercises.length)
@@ -98,22 +99,20 @@ export default function LessonScreen({ lang, books, book, lesson, isReview, stat
     return false
   }
 
-  function grade(): boolean {
-    if (ex.kind === 'pick') return picked === ex.answer
-    if (ex.kind === 'bank') {
-      const chosen = tilesPicked.map((i) => ex.tiles[i])
-      return chosen.join('') === ex.answer.join('')
-    }
-    if (ex.kind === 'type') return normalize(typed) === normalize(ex.answer)
-    return true
+  function checkAnswer() {
+    if (ex.kind === 'pick') return gradeAnswer(ex, picked ?? '')
+    if (ex.kind === 'bank') return gradeAnswer(ex, tilesPicked.map((i) => ex.tiles[i]))
+    if (ex.kind === 'type') return gradeAnswer(ex, typed)
+    return { correct: true, nearMiss: false }
   }
 
-  function applyResult(correct: boolean) {
-    // SRS 반영
+  function applyResult(correct: boolean, isNearMiss = false) {
+    // 재시도로 맞춘 것과 오타 한 글자는 '맞음'으로 넘기되 숙련도는 올리지 않는다
+    const outcome: Outcome = correct ? (isNearMiss || current!.retry ? 'near' : 'correct') : 'wrong'
     if (ex.srsKeys.length > 0) {
       setState((s) => {
         let srs = s.srs
-        for (const key of ex.srsKeys) srs = updateSrs(srs, key, correct)
+        for (const key of ex.srsKeys) srs = updateSrs(srs, key, outcome)
         return { ...s, srs }
       })
     }
@@ -137,7 +136,9 @@ export default function LessonScreen({ lang, books, book, lesson, isReview, stat
 
   function check() {
     if (!canCheck() || status !== 'answering') return
-    applyResult(grade())
+    const r = checkAnswer()
+    setNearMiss(r.correct && r.nearMiss)
+    applyResult(r.correct, r.nearMiss)
   }
 
   function next() {
@@ -152,6 +153,7 @@ export default function LessonScreen({ lang, books, book, lesson, isReview, stat
     }
     setPos(nextPos)
     setStatus('answering')
+    setNearMiss(false)
     setPicked(null)
     setTilesPicked([])
     setTyped('')
@@ -205,7 +207,11 @@ export default function LessonScreen({ lang, books, book, lesson, isReview, stat
           <div className="feedback">
             <div className="feedback-text">
               {status === 'correct' ? (
-                <span>💮 정답이에요!</span>
+                nearMiss ? (
+                  <span>💮 거의 맞았어요! 정답: <b>{correctAnswerText}</b></span>
+                ) : (
+                  <span>💮 정답이에요!</span>
+                )
               ) : (
                 <span>🥀 아쉬워요! 정답: <b>{correctAnswerText}</b></span>
               )}
