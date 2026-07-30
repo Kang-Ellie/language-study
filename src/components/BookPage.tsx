@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Unit } from '../types'
 import type { QuizRequest } from '../lib/quiz'
 import QuizScopePicker, { type ScopeChoice } from './QuizScopePicker'
+import { bookFill, bookMastery, chapterMastery, pct, sectionHasContent } from '../lib/progress'
 import { doneChapterCount, isChapterDone, type AppState } from '../lib/storage'
 import { checkAudioFiles, playMp3 } from '../lib/audio'
 import { bookAudioFiles } from '../lib/lessonModel'
@@ -31,6 +32,8 @@ export default function BookPage({ books, book, state, onQuiz, onBack, onOpenCha
   // "이어서" 버튼이 가리킬 챕터 = 아직 완료 표시가 없는 첫 챕터
   const nextChapter = book.lessons.find((l) => !isChapterDone(state, l.id)) ?? book.lessons[0]
   const logDays = bookLogDays(chapterIds)
+  const mastery = bookMastery(book, state)
+  const fill = bookFill(book)
 
   useEffect(() => {
     const files = bookAudioFiles(book)
@@ -74,7 +77,16 @@ export default function BookPage({ books, book, state, onQuiz, onBack, onOpenCha
               <div>
                 <h1 className="book-page-title">{book.title}</h1>
                 {book.sourceTitle && <div className="book-source-line">{book.sourceType ? SOURCE_LABEL[book.sourceType] : ''} {book.sourceTitle}</div>}
-                <div className="book-progress-text">{done}/{book.lessons.length} 챕터 완료 {logDays > 0 && `· 📝 ${logDays}일 기록`}</div>
+                <div className="book-progress-text">📌 {done}/{book.lessons.length} 챕터 완료 {logDays > 0 && `· 📝 ${logDays}일 기록`}</div>
+                {mastery.total > 0 && (
+                  <div className="book-progress-text">💮 {mastery.mastered}/{mastery.total} 익힘 ({pct(mastery.ratio)}%)</div>
+                )}
+                {/* 교재를 얼마나 채웠는지 — 다 채운 책에는 굳이 안 보여준다 */}
+                {fill.ratio < 1 && (
+                  <div className="book-progress-text fill-line">
+                    ✏️ 소단원 {fill.filled}/{fill.total} 채움 — 빈 곳은 점선으로 표시돼요
+                  </div>
+                )}
               </div>
             </div>
 
@@ -96,15 +108,22 @@ export default function BookPage({ books, book, state, onQuiz, onBack, onOpenCha
                 {book.lessons.map((lesson) => {
                   const isDone = isChapterDone(state, lesson.id)
                   const isNext = lesson.id === nextChapter?.id && !isDone
-                  const wc = lesson.sections.reduce((n, s) => n + s.words.length, 0)
+                  const cm = chapterMastery(book, lesson, state)
+                  const emptyCount = lesson.sections.filter((s) => !sectionHasContent(s)).length
                   return (
                     <button key={lesson.id} className={`node ${isDone ? 'done' : ''} ${isNext ? 'next' : ''}`} onClick={() => onOpenChapter(lesson.id)}>
                       <span className="node-icon">{isDone ? '🌸' : isNext ? '⭐️' : '📄'}</span>
                       <span className="node-label">
                         {lesson.title}
                         {lesson.context && <span className="node-context"> · {lesson.context}</span>}
+                        {/* 숙달도는 완료 표시와 별개 — 퀴즈로 익힌 만큼만 찬다 */}
+                        {cm.total > 0 && (
+                          <span className="node-bar"><span className="node-bar-fill" style={{ width: `${pct(cm.ratio)}%` }} /></span>
+                        )}
                       </span>
-                      <span className="node-count">{wc}단어</span>
+                      <span className="node-count">
+                        {cm.total > 0 ? `💮 ${pct(cm.ratio)}%` : emptyCount > 0 ? '비어 있음' : '0개'}
+                      </span>
                     </button>
                   )
                 })}

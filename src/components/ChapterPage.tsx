@@ -3,6 +3,7 @@ import type { Lesson, Unit } from '../types'
 import type { QuizRequest } from '../lib/quiz'
 import type { AppState } from '../lib/storage'
 import QuizScopePicker, { type ScopeChoice } from './QuizScopePicker'
+import { chapterMastery, pct, sectionHasContent, sectionMastery } from '../lib/progress'
 import { lessonAudioFiles } from '../lib/lessonModel'
 import { checkAudioFiles, playMp3 } from '../lib/audio'
 import { today } from '../lib/storage'
@@ -61,6 +62,8 @@ export default function ChapterPage({ books, state, book, chapter, isDone, onBac
     { scope: { type: 'wrong', days: 7 }, label: '🥀 최근 일주일 틀린 것' },
   ]
 
+  const mastery = chapterMastery(book, chapter, state)
+
   const Speaker = ({ file, label }: { file?: string; label?: string }) =>
     file && audioOk.has(file) ? (
       <button className="spk" onClick={() => playMp3(lang, file)} title={label}>🔊</button>
@@ -88,9 +91,33 @@ export default function ChapterPage({ books, state, book, chapter, isDone, onBac
             <h1 className="book-page-title">📑 {lesson.title}</h1>
             {lesson.context && <p className="chapter-context">{lesson.context}</p>}
 
-            {sections.map((section) => (
+            {/* 숙달도(퀴즈로 익힌 정도)와 완료 표시는 서로 다른 것이라 따로 보여준다 */}
+            {mastery.total > 0 && (
+              <div className="mastery-line">
+                <div className="mastery-bar"><div className="mastery-fill" style={{ width: `${pct(mastery.ratio)}%` }} /></div>
+                <span className="mastery-text">💮 {mastery.mastered}/{mastery.total} 익힘</span>
+                {isDone && <span className="tag mine">📌 완료 표시</span>}
+              </div>
+            )}
+
+            {sections.map((section) => {
+              const filled = sectionHasContent(section)
+              const sm = sectionMastery(book, chapter, section, state)
+              // 빈 소단원은 점선 회색 카드로 — "여기 아직 안 채웠다"가 눈에 보이게
+              if (!filled) {
+                return (
+                  <div key={section.id} className="study-section empty-section">
+                    <div className="content-sec-title">📂 {section.title}</div>
+                    <p className="empty-section-hint">아직 안 채운 곳이에요. ✏️ 편집에서 본문·새단어를 넣어 보세요.</p>
+                  </div>
+                )
+              }
+              return (
               <div key={section.id} className="study-section">
-                {section.title && <div className="content-sec-title">📂 {section.title}</div>}
+                <div className="content-sec-title">
+                  📂 {section.title}
+                  {sm.total > 0 && <span className="sec-mastery">💮 {sm.mastered}/{sm.total}</span>}
+                </div>
 
                 {(section.images ?? []).length > 0 && (
                   <div className="img-gallery">
@@ -164,7 +191,8 @@ export default function ChapterPage({ books, state, book, chapter, isDone, onBac
                   </>
                 )}
               </div>
-            ))}
+              )
+            })}
 
             <div className="chapter-actions">
               <button className="pill primary big" onClick={() => setShowPicker(true)}>🎯 퀴즈로 복습</button>

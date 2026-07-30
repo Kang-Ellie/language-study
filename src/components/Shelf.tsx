@@ -3,6 +3,7 @@ import { doneChapterCount, type AppState } from '../lib/storage'
 import { LANGUAGES } from '../data'
 import { dueItems } from '../lib/srs'
 import { isCustomBook } from '../lib/books'
+import { bookMastery, pct } from '../lib/progress'
 import Marquee from './Marquee'
 import Taskbar from './Taskbar'
 
@@ -79,8 +80,9 @@ export default function Shelf({ state, setState, books, onOpenBook, onNewBook, o
           {books.map((book, i) => {
             const done = doneChapterCount(state, book.lessons.map((l) => l.id))
             const total = book.lessons.length
-            const pct = total > 0 ? Math.round((done / total) * 100) : 0
+            const donePct = total > 0 ? Math.round((done / total) * 100) : 0
             const custom = isCustomBook(book.id)
+            const mastery = bookMastery(book, state)
             return (
               <button key={book.id} className="win book-win" onClick={() => onOpenBook(book.id)}>
                 <div className={`win-bar ${BARS[i % BARS.length]}`}>
@@ -97,9 +99,10 @@ export default function Shelf({ state, setState, books, onOpenBook, onNewBook, o
                     {book.track === 'media' && book.sourceType && <span className="tag">{SOURCE_LABEL[book.sourceType]}</span>}
                     {custom && <span className="tag mine">✏️ 내 편집</span>}
                   </div>
-                  <div className="book-progress-bar"><div className="book-progress-fill" style={{ width: `${pct}%` }} /></div>
+                  <div className="book-progress-bar"><div className="book-progress-fill" style={{ width: `${donePct}%` }} /></div>
                   <div className="book-foot">
-                    <span>{done}/{total} 챕터 {pct === 100 && '💮'}</span>
+                    {/* 진도(내가 완료 표시한 챕터)와 숙달도(퀴즈로 익힌 것)는 다른 값이다 */}
+                    <span>📌 {done}/{total} 챕터{mastery.mastered > 0 && ` · 💮 ${pct(mastery.ratio)}%`}</span>
                     <span className="open-link">OPEN →</span>
                   </div>
                 </div>
