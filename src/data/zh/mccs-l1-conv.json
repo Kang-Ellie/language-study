@@ -1,0 +1,42 @@
+{
+  "id": "zh-mccs-l1-conv",
+  "title": "맛있는 중국어 L1 — 기초회화",
+  "emoji": "🍜",
+  "track": "media",
+  "sourceType": "textbook",
+  "sourceTitle": "맛있는 중국어 Level 1: 첫걸음",
+  "lessons": [
+    {
+      "title": "어디 가요? — 去",
+      "context": "행선지 묻고 답하기",
+      "words": [
+        { "text": "去", "reading": "qù", "meaning": "가다" },
+        { "text": "哪儿", "reading": "nǎr", "meaning": "어디" },
+        { "text": "学校", "reading": "xuéxiào", "meaning": "학교" },
+        { "text": "商店", "reading": "shāngdiàn", "meaning": "가게, 상점" },
+        { "text": "现在", "reading": "xiànzài", "meaning": "지금" }
+      ],
+      "sentences": [
+        { "text": "你去哪儿？", "reading": "nǐ qù nǎr", "meaning": "어디 가요?", "tokens": ["你", "去", "哪儿"] },
+        { "text": "我去学校。", "reading": "wǒ qù xuéxiào", "meaning": "나는 학교에 가요", "tokens": ["我", "去", "学校"] },
+        { "text": "你现在去商店吗？", "reading": "nǐ xiànzài qù shāngdiàn ma", "meaning": "지금 가게에 가요?", "tokens": ["你", "现在", "去", "商店", "吗"] }
+      ]
+    },
+    {
+      "title": "뭐 먹어요? — 吃",
+      "context": "먹고 마시는 것 말하기",
+      "words": [
+        { "text": "吃", "reading": "chī", "meaning": "먹다" },
+        { "text": "饭", "reading": "fàn", "meaning": "밥" },
+        { "text": "水", "reading": "shuǐ", "meaning": "물" },
+        { "text": "想", "reading": "xiǎng", "meaning": "~하고 싶다" },
+        { "text": "了", "reading": "le", "meaning": "~했다 (완료)" }
+      ],
+      "sentences": [
+        { "text": "你吃饭了吗？", "reading": "nǐ chī fàn le ma", "meaning": "밥 먹었어요?", "tokens": ["你", "吃", "饭", "了", "吗"] },
+        { "text": "我想喝茶。", "reading": "wǒ xiǎng hē chá", "meaning": "나는 차를 마시고 싶어요", "tokens": ["我", "想", "喝", "茶"] },
+        { "text": "我吃饭，你呢？", "reading": "wǒ chī fàn, nǐ ne", "meaning": "나는 밥 먹어요 너는요?", "tokens": ["我", "吃", "饭", "你", "呢"] }
+      ]
+    }
+  ]
+}

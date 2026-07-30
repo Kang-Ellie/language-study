@@ -1,0 +1,48 @@
+{
+  "id": "en-harry-potter-1",
+  "title": "Harry Potter — 마법사의 돌",
+  "emoji": "⚡️",
+  "track": "media",
+  "sourceType": "book",
+  "sourceTitle": "Harry Potter and the Philosopher's Stone",
+  "lessons": [
+    {
+      "title": "호그와트로 가는 길",
+      "context": "부엉이가 가져온 편지",
+      "words": [
+        { "text": "wizard", "meaning": "마법사" },
+        { "text": "magic", "meaning": "마법" },
+        { "text": "wand", "meaning": "마법 지팡이" },
+        { "text": "owl", "meaning": "부엉이" },
+        { "text": "castle", "meaning": "성" },
+        { "text": "letter", "meaning": "편지" },
+        { "text": "school", "meaning": "학교" },
+        { "text": "bring", "meaning": "가져오다" }
+      ],
+      "sentences": [
+        { "text": "Harry is a wizard.", "meaning": "해리는 마법사예요" },
+        { "text": "The owl brings a letter.", "meaning": "부엉이가 편지를 가져와요" },
+        { "text": "Hogwarts is a magic school.", "meaning": "호그와트는 마법 학교예요" }
+      ]
+    },
+    {
+      "title": "마법 수업",
+      "context": "주문과 빗자루",
+      "words": [
+        { "text": "spell", "meaning": "주문" },
+        { "text": "potion", "meaning": "마법약" },
+        { "text": "broom", "meaning": "빗자루" },
+        { "text": "fly", "meaning": "날다" },
+        { "text": "brave", "meaning": "용감한" },
+        { "text": "dark", "meaning": "어두운" },
+        { "text": "every", "meaning": "모든" },
+        { "text": "know", "meaning": "알다" }
+      ],
+      "sentences": [
+        { "text": "Harry can fly on a broom.", "meaning": "해리는 빗자루를 타고 날 수 있어요" },
+        { "text": "Hermione knows every spell.", "meaning": "헤르미온느는 모든 주문을 알아요" },
+        { "text": "Be brave, Harry.", "meaning": "용감해져 해리" }
+      ]
+    }
+  ]
+}

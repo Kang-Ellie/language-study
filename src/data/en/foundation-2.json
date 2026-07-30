@@ -1,0 +1,65 @@
+{
+  "id": "en-foundation-2",
+  "title": "기초 2 — 숫자·시간·질문",
+  "emoji": "🌿",
+  "track": "foundation",
+  "lessons": [
+    {
+      "title": "숫자 1~10",
+      "context": "개수 세기",
+      "words": [
+        { "text": "one", "meaning": "1, 하나" },
+        { "text": "two", "meaning": "2, 둘" },
+        { "text": "three", "meaning": "3, 셋" },
+        { "text": "four", "meaning": "4, 넷" },
+        { "text": "five", "meaning": "5, 다섯" },
+        { "text": "six", "meaning": "6, 여섯" },
+        { "text": "seven", "meaning": "7, 일곱" },
+        { "text": "eight", "meaning": "8, 여덟" },
+        { "text": "nine", "meaning": "9, 아홉" },
+        { "text": "ten", "meaning": "10, 열" }
+      ],
+      "sentences": [
+        { "text": "I have two cats.", "meaning": "나는 고양이 두 마리가 있어요" },
+        { "text": "She has three books.", "meaning": "그녀는 책 세 권이 있어요" }
+      ]
+    },
+    {
+      "title": "시간 표현",
+      "context": "오늘, 내일, 지금",
+      "words": [
+        { "text": "today", "meaning": "오늘" },
+        { "text": "tomorrow", "meaning": "내일" },
+        { "text": "yesterday", "meaning": "어제" },
+        { "text": "now", "meaning": "지금" },
+        { "text": "morning", "meaning": "아침" },
+        { "text": "night", "meaning": "밤" },
+        { "text": "time", "meaning": "시간" },
+        { "text": "see", "meaning": "보다" }
+      ],
+      "sentences": [
+        { "text": "What time is it now?", "meaning": "지금 몇 시예요?" },
+        { "text": "I am busy today.", "meaning": "나는 오늘 바빠요" },
+        { "text": "See you tomorrow.", "meaning": "내일 봐요" }
+      ]
+    },
+    {
+      "title": "의문사",
+      "context": "무엇, 누구, 어디, 왜",
+      "words": [
+        { "text": "what", "meaning": "무엇" },
+        { "text": "who", "meaning": "누구" },
+        { "text": "where", "meaning": "어디" },
+        { "text": "when", "meaning": "언제" },
+        { "text": "why", "meaning": "왜" },
+        { "text": "how", "meaning": "어떻게" },
+        { "text": "sad", "meaning": "슬픈" }
+      ],
+      "sentences": [
+        { "text": "Where are you?", "meaning": "어디에 있어요?" },
+        { "text": "Who is she?", "meaning": "그녀는 누구예요?" },
+        { "text": "Why are you sad?", "meaning": "왜 슬퍼요?" }
+      ]
+    }
+  ]
+}
