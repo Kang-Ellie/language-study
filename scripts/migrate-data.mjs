@@ -71,9 +71,10 @@ function convertLesson(raw, bookId, i) {
   return out
 }
 
-function convertBook(raw) {
+function convertBook(raw, lang) {
   const out = {
     id: raw.id,
+    lang: raw.lang ?? lang, // 책이 자기 언어를 갖는다 (상위 Course 계층 폐기)
     title: raw.title,
     emoji: raw.emoji ?? '📕',
     track: raw.track ?? 'media',
@@ -85,7 +86,7 @@ function convertBook(raw) {
 }
 
 function isConverted(raw) {
-  return (raw.lessons ?? []).every((l) => l.id && Array.isArray(l.sections))
+  return !!raw.lang && (raw.lessons ?? []).every((l) => l.id && Array.isArray(l.sections))
 }
 
 let changed = 0
@@ -101,10 +102,8 @@ for (const lang of readdirSync(DATA_DIR, { withFileTypes: true })) {
       skipped++
       continue
     }
-    writeFileSync(path, JSON.stringify(convertBook(raw), null, 2) + '\n', 'utf8')
-    const words = raw.lessons.reduce((n, l) => n + (l.words?.length ?? 0), 0)
-    const sents = raw.lessons.reduce((n, l) => n + (l.sentences?.length ?? 0), 0)
-    console.log(`✓ ${lang.name}/${file}  챕터 ${raw.lessons.length} · 단어 ${words} · 문장 ${sents}`)
+    writeFileSync(path, JSON.stringify(convertBook(raw, lang.name), null, 2) + '\n', 'utf8')
+    console.log(`✓ ${lang.name}/${file}  lang=${raw.lang ?? lang.name} · 챕터 ${raw.lessons.length}`)
     changed++
   }
 }

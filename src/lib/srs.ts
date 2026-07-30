@@ -1,7 +1,8 @@
 import type { AppState, SrsEntry } from './storage'
 import { today } from './storage'
-import type { Course, ItemId, Word } from '../types'
+import type { ItemId, StudyItem, Unit, Word } from '../types'
 import { bookWords } from './lessonModel'
+import { allItems } from './items'
 
 // 간격 반복: 숙련도별 다음 복습까지의 일수
 const INTERVALS = [0, 1, 3, 7, 14, 30]
@@ -39,11 +40,11 @@ export function updateSrs(
   return { ...srs, [itemId]: entry }
 }
 
-/** 오늘 복습해야 할 단어 목록 (현재 코스) */
-export function dueWords(state: AppState, course: Course): Word[] {
+/** 오늘 복습해야 할 단어 목록 (주어진 책들 안에서) */
+export function dueWords(state: AppState, books: Unit[]): Word[] {
   const t = today()
   const due: Word[] = []
-  for (const book of course.units) {
+  for (const book of books) {
     for (const w of bookWords(book)) {
       const e = state.srs[w.id]
       if (e && e.next <= t && !due.some((d) => d.text === w.text)) due.push(w)
@@ -58,11 +59,11 @@ export function dueWords(state: AppState, course: Course): Word[] {
   return due
 }
 
-/** 학습한(1회 이상 본) 단어 수 — 이 코스의 책에 실제로 존재하는 것만 센다 */
-export function learnedCount(state: AppState, course: Course): number {
+/** 학습한(1회 이상 본) 단어 수 — 주어진 책에 실제로 존재하는 것만 센다 */
+export function learnedCount(state: AppState, books: Unit[]): number {
   let n = 0
   const seen = new Set<string>()
-  for (const book of course.units) {
+  for (const book of books) {
     for (const w of bookWords(book)) {
       if (seen.has(w.id)) continue
       seen.add(w.id)
@@ -70,4 +71,16 @@ export function learnedCount(state: AppState, course: Course): number {
     }
   }
   return n
+}
+
+/**
+ * 오늘 복습 대상 항목 (단어 + 문장). 4단계 퀴즈 엔진이 'review' 범위로 쓴다.
+ * 지금 복습 세션은 아직 단어만 출제하므로 dueWords()와 별개로 둔다.
+ */
+export function dueItems(state: AppState, books: Unit[]): StudyItem[] {
+  const t = today()
+  return allItems(books).filter((it) => {
+    const e = state.srs[it.id]
+    return !!e && e.next <= t
+  })
 }

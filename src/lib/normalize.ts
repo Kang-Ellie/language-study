@@ -62,6 +62,7 @@ export interface RawLesson {
 
 export interface RawUnit {
   id?: string
+  lang?: string
   title?: string
   emoji?: string
   track?: string
@@ -193,6 +194,16 @@ function normalizeLesson(raw: RawLesson, mint: IdMinter, bookId: string, i: numb
 }
 
 /**
+ * 책의 언어. `lang` 필드가 없는 예전 데이터는 id 접두사에서 유추한다
+ * (내장 책 `zh-mccs-l1-conv`, 내 책 `zh-book-1234` 둘 다 언어로 시작한다).
+ */
+export function langOf(raw: RawUnit, id: string): string {
+  if (raw.lang && raw.lang.trim()) return raw.lang.trim()
+  const m = /^([a-z]{2,3})-/.exec(id)
+  return m ? m[1] : 'zh'
+}
+
+/**
  * 책 하나를 정규 스키마로. 이 함수는 순수하며 여러 번 적용해도 결과가 같다(멱등).
  * @param fallbackId 책에 id가 없을 때 쓸 id (예: 새로 만든 책)
  */
@@ -201,6 +212,7 @@ export function normalizeBook(raw: RawUnit, fallbackId: string): Unit {
   const mint = new IdMinter()
   const book: Unit = {
     id,
+    lang: langOf(raw, id),
     title: String(raw.title ?? ''),
     emoji: raw.emoji || '📕',
     track: oneOf(TRACKS, raw.track, 'media'),
@@ -216,7 +228,7 @@ export function normalizeBook(raw: RawUnit, fallbackId: string): Unit {
 
 /** 이 책이 이미 정규화됐는지 (id가 전부 있는지). 마이그레이션 필요 여부 판단용 */
 export function isNormalized(raw: RawUnit): boolean {
-  if (!raw.id) return false
+  if (!raw.id || !raw.lang) return false
   for (const l of raw.lessons ?? []) {
     if (!l.id || !Array.isArray(l.sections)) return false
     for (const s of l.sections) {
@@ -261,6 +273,7 @@ export function adoptIds(raw: RawUnit, existing: Unit): RawUnit {
   return {
     ...raw,
     id: raw.id ?? existing.id,
+    lang: raw.lang ?? existing.lang,
     lessons: (raw.lessons ?? []).map((l) => ({
       ...l,
       sections: (l.sections ?? []).map((s) => ({
@@ -277,6 +290,37 @@ export function adoptIds(raw: RawUnit, existing: Unit): RawUnit {
       sentences: l.sections
         ? l.sentences
         : (l.sentences ?? []).map((s) => ({ ...s, id: s.id ?? claim(sentences, s.text) })),
+    })),
+  }
+}
+
+/**
+ * 책 id를 바꾸고, 그 id를 접두사로 쓰는 하위 id를 전부 따라 바꾼다.
+ *
+ * **아직 저장하지 않은 새 책에만 쓴다.** 이미 저장된 책의 id를 바꾸면 그 책에 쌓인
+ * 숙련도·학습 기록이 전부 끊긴다. 편집기에서 새 책의 언어를 고를 때, 언어가 바뀌면
+ * 책 id의 언어 접두사도 따라가야 해서 필요하다.
+ */
+export function rekeyBook(book: Unit, newId: string): Unit {
+  if (book.id === newId) return book
+  const swap = (id: string) => (id === book.id || id.startsWith(book.id + '/') ? newId + id.slice(book.id.length) : id)
+  return {
+    ...book,
+    id: newId,
+    lessons: book.lessons.map((l) => ({
+      ...l,
+      id: swap(l.id),
+      sections: l.sections.map((s) => ({
+        ...s,
+        id: swap(s.id),
+        words: s.words.map((w) => ({ ...w, id: swap(w.id) })),
+        passages: s.passages.map((p) => ({ ...p, id: swap(p.id) })),
+        grammar: s.grammar.map((g) => ({
+          ...g,
+          id: swap(g.id),
+          examples: g.examples.map((e) => ({ ...e, id: swap(e.id) })),
+        })),
+      })),
     })),
   }
 }

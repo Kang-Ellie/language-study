@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Course, Exercise, Lesson, LessonResult, Unit } from '../types'
+import type { Exercise, Lesson, LessonResult, Unit } from '../types'
 import type { AppState } from '../lib/storage'
 import { updateSrs, dueWords } from '../lib/srs'
-import { buildLessonExercises, buildReviewExercises, courseAllWords, normalize } from '../lib/exercises'
+import { allWordsOf, buildLessonExercises, buildReviewExercises, normalize } from '../lib/exercises'
 import { lessonAudioFiles } from '../lib/lessonModel'
 import { playCorrect, playWrong, playMp3, checkAudioFiles } from '../lib/audio'
 
 interface Props {
-  course: Course
-  unit?: Unit
+  lang: string
+  books: Unit[] // 같은 언어의 책 전부 (보기 풀 보충용)
+  book?: Unit
   lesson?: Lesson
   isReview: boolean
   state: AppState
@@ -24,7 +25,7 @@ interface Item {
 
 type Status = 'answering' | 'correct' | 'wrong'
 
-export default function LessonScreen({ course, unit, lesson, isReview, state, setState, onExit, onFinish }: Props) {
+export default function LessonScreen({ lang, books, book, lesson, isReview, state, setState, onExit, onFinish }: Props) {
   const [items, setItems] = useState<Item[] | null>(null)
   const [pos, setPos] = useState(0)
   const [status, setStatus] = useState<Status>('answering')
@@ -44,11 +45,11 @@ export default function LessonScreen({ course, unit, lesson, isReview, state, se
     async function build() {
       let exercises: Exercise[]
       if (isReview) {
-        const due = dueWords(state, course)
-        exercises = buildReviewExercises(course, due, courseAllWords(course))
-      } else if (unit && lesson) {
-        const ok = await checkAudioFiles(course.id, lessonAudioFiles(lesson))
-        exercises = buildLessonExercises(course, unit, lesson, ok)
+        const due = dueWords(state, books)
+        exercises = buildReviewExercises(lang, due, allWordsOf(books))
+      } else if (book && lesson) {
+        const ok = await checkAudioFiles(book.lang, lessonAudioFiles(lesson))
+        exercises = buildLessonExercises(book, lesson, books, ok)
       } else {
         exercises = []
       }
@@ -71,7 +72,7 @@ export default function LessonScreen({ course, unit, lesson, isReview, state, se
     if (current && status === 'answering') {
       const ex = current.ex
       if ((ex.kind === 'pick' || ex.kind === 'bank') && ex.audioOnly && ex.promptAudio) {
-        playMp3(course.id, ex.promptAudio)
+        playMp3(book?.lang ?? lang, ex.promptAudio)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -171,10 +172,10 @@ export default function LessonScreen({ course, unit, lesson, isReview, state, se
         <h2 className="question">{ex.question}</h2>
 
         {ex.kind === 'pick' && (
-          <PickView ex={ex} picked={picked} setPicked={setPicked} status={status} courseId={course.id} />
+          <PickView ex={ex} picked={picked} setPicked={setPicked} status={status} lang={book?.lang ?? lang} />
         )}
         {ex.kind === 'bank' && (
-          <BankView ex={ex} tilesPicked={tilesPicked} setTilesPicked={setTilesPicked} status={status} courseId={course.id} />
+          <BankView ex={ex} tilesPicked={tilesPicked} setTilesPicked={setTilesPicked} status={status} lang={book?.lang ?? lang} />
         )}
         {ex.kind === 'type' && (
           <TypeView ex={ex} typed={typed} setTyped={setTyped} status={status} onEnter={check} />
@@ -236,19 +237,19 @@ function PickView({
   picked,
   setPicked,
   status,
-  courseId,
+  lang,
 }: {
   ex: Extract<Exercise, { kind: 'pick' }>
   picked: string | null
   setPicked: (v: string) => void
   status: Status
-  courseId: string
+  lang: string
 }) {
   return (
     <div>
       <div className="prompt-card">
         {ex.promptAudio && (
-          <button className="speaker" onClick={() => playMp3(courseId, ex.promptAudio!)}>🔊</button>
+          <button className="speaker" onClick={() => playMp3(lang, ex.promptAudio!)}>🔊</button>
         )}
         {!ex.audioOnly && (
           <div className="prompt-text">
@@ -282,19 +283,19 @@ function BankView({
   tilesPicked,
   setTilesPicked,
   status,
-  courseId,
+  lang,
 }: {
   ex: Extract<Exercise, { kind: 'bank' }>
   tilesPicked: number[]
   setTilesPicked: (v: number[]) => void
   status: Status
-  courseId: string
+  lang: string
 }) {
   return (
     <div>
       <div className="prompt-card">
         {ex.promptAudio && (
-          <button className="speaker" onClick={() => playMp3(courseId, ex.promptAudio!)}>🔊</button>
+          <button className="speaker" onClick={() => playMp3(lang, ex.promptAudio!)}>🔊</button>
         )}
         {!ex.audioOnly && (
           <div className="prompt-text">

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import type { Course, Unit } from '../types'
+import type { Unit } from '../types'
 import {
   adoptIds,
   newGrammar,
@@ -9,14 +9,16 @@ import {
   newSentence,
   newWord,
   normalizeBook,
+  rekeyBook,
 } from '../lib/normalize'
 import { deleteCustomBook, isBuiltinBook, isCustomBook, newBookId, parseBookJson, upsertBook } from '../lib/books'
 import { putImage } from '../lib/imageStore'
+import { LANGUAGES, languageOf } from '../data'
 import AudioField from './AudioField'
 import ImageThumb from './ImageThumb'
 
 interface Props {
-  course: Course
+  lang: string // 새 책을 만들 때 기본 언어 (지금 책장 탭)
   initial?: Unit
   onDone: (savedBookId?: string) => void
   onBack: () => void
@@ -28,11 +30,12 @@ const EMOJIS = ['📕', '📗', '📘', '📙', '📓', '🥟', '⚡️', '☕�
  * 편집용 사본. **id는 절대 건드리지 않는다** — id가 바뀌면 그 항목에 쌓인 숙련도와
  * 학습 기록이 끊긴다. 새 책은 여기서 책 id를 미리 발급해 하위 id의 접두사로 쓴다.
  */
-function toEditable(unit: Unit | undefined, courseId: string): Unit {
+function toEditable(unit: Unit | undefined, lang: string): Unit {
   if (!unit) {
-    const id = newBookId(courseId)
+    const id = newBookId(lang)
     return {
       id,
+      lang,
       title: '',
       emoji: '📕',
       track: 'media',
@@ -52,8 +55,8 @@ function splitPassage(text: string): string[] {
     .filter(Boolean)
 }
 
-export default function Editor({ course, initial, onDone, onBack }: Props) {
-  const [book, setBook] = useState<Unit>(() => toEditable(initial, course.id))
+export default function Editor({ lang, initial, onDone, onBack }: Props) {
+  const [book, setBook] = useState<Unit>(() => toEditable(initial, lang))
   const bookId = book.id
   const [openCh, setOpenCh] = useState(0)
   const [showJson, setShowJson] = useState<'none' | 'import' | 'export'>('none')
@@ -64,8 +67,8 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
     setOpenDetail((d) => ({ ...d, [`${li}-${si}`]: !d[`${li}-${si}`] }))
 
   const isNew = !initial
-  const builtin = initial ? isBuiltinBook(course.id, initial.id) : false
-  const custom = initial ? isCustomBook(course.id, initial.id) : false
+  const builtin = initial ? isBuiltinBook(initial.id) : false
+  const custom = initial ? isCustomBook(initial.id) : false
 
   /** 깊은 복제 후 수정 — 중첩 구조를 안전하게 업데이트 */
   function mutate(fn: (b: Unit) => void) {
@@ -91,7 +94,7 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
     const names: string[] = []
     for (const f of files) {
       const name = `img-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.jpg`
-      await putImage(course.id, name, f)
+      await putImage(book.lang, name, f)
       names.push(name)
     }
     mutate((b) => {
@@ -130,7 +133,7 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
       }))
       .filter((l) => l.title && l.sections.length)
     if (lessons.length === 0) return setError('내용이 있는 챕터가 최소 1개 필요해요. (본문·새단어·문법 중 하나는 채워주세요)')
-    upsertBook(course.id, { ...book, lessons })
+    upsertBook({ ...book, lessons })
     onDone(book.id)
   }
 
@@ -144,7 +147,7 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
       return setError('JSON 형식이 아니에요. 중괄호 { } 전체를 붙여넣었는지 확인해 주세요.')
     }
     const withIds = adoptIds(raw as Parameters<typeof adoptIds>[0], book)
-    const parsed = parseBookJson(JSON.stringify(withIds), book.id)
+    const parsed = parseBookJson(JSON.stringify(withIds), book.id, book.lang)
     if (typeof parsed === 'string') return setError(parsed)
     setBook(parsed)
     setShowJson('none')
@@ -178,6 +181,26 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
           <div className="editor-field">
             <label>책 제목</label>
             <input value={book.title} placeholder="예: 맛있는 중국어 L2" onChange={(e) => mutate((b) => { b.title = e.target.value })} />
+          </div>
+          <div className="editor-field">
+            <label>언어</label>
+            <div className="editor-inline">
+              <select
+                value={book.lang}
+                onChange={(e) => {
+                  // 새 책은 id의 언어 접두사도 따라가야 한다 (하위 id까지 함께 다시 매김).
+                  // 이미 저장된 책은 select가 비활성이라 여기로 오지 않는다.
+                  const next = e.target.value
+                  setBook((b) => ({ ...rekeyBook(b, newBookId(next)), lang: next }))
+                }}
+                disabled={!!initial}
+                title={initial ? '이미 만든 책의 언어는 바꿀 수 없어요 (녹음·사진이 언어별로 저장돼 있어요)' : undefined}
+              >
+                {(LANGUAGES.some((l) => l.id === book.lang) ? LANGUAGES : [...LANGUAGES, languageOf(book.lang)]).map((l) => (
+                  <option key={l.id} value={l.id}>{l.flag} {l.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="editor-field">
             <label>책 종류</label>
@@ -259,7 +282,7 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
                       <div className="img-gallery-edit">
                         {(section.images ?? []).map((img, ii) => (
                           <div key={ii} className="img-gallery-item">
-                            <ImageThumb ns={course.id} file={img} />
+                            <ImageThumb ns={book.lang} file={img} />
                             <button className="mini-del gallery-del" onClick={() => mutate((b) => { sec(b, li, si).images = (sec(b, li, si).images ?? []).filter((_, j) => j !== ii) })}>✕</button>
                           </div>
                         ))}
@@ -286,7 +309,7 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
                           onChange={(e) => mutate((b) => { sec(b, li, si).passageTranslation = e.target.value })}
                         />
                         <div className="edit-line">
-                          <AudioField courseId={course.id} value={section.passageAudio} slug={section.title} onChange={(f) => mutate((b) => { sec(b, li, si).passageAudio = f })} />
+                          <AudioField lang={book.lang} value={section.passageAudio} slug={section.title} onChange={(f) => mutate((b) => { sec(b, li, si).passageAudio = f })} />
                           <span className="hint-inline">선생님 낭독 전체 녹음</span>
                         </div>
                         {(section.passageText ?? '').trim() && (
@@ -316,12 +339,12 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
                             <button className="mini-del" onClick={() => mutate((b) => { sec(b, li, si).passages.splice(pi, 1) })}>✕</button>
                           </div>
                           <div className="edit-line">
-                            {course.id !== 'en' && <input value={p.reading ?? ''} placeholder="발음(병음/후리가나)" onChange={(e) => mutate((b) => { sec(b, li, si).passages[pi].reading = e.target.value || undefined })} />}
+                            {book.lang !== 'en' && <input value={p.reading ?? ''} placeholder="발음(병음/후리가나)" onChange={(e) => mutate((b) => { sec(b, li, si).passages[pi].reading = e.target.value || undefined })} />}
                             <input value={p.meaning} placeholder="뜻 (선택, 퀴즈에 쓰려면 입력)" onChange={(e) => mutate((b) => { sec(b, li, si).passages[pi].meaning = e.target.value })} />
                           </div>
                           <div className="edit-line">
-                            <AudioField courseId={course.id} value={p.audio} slug={p.text} onChange={(f) => mutate((b) => { sec(b, li, si).passages[pi].audio = f })} />
-                            {course.id !== 'en' && <input className="tok" value={(p.tokens ?? []).join(' ')} placeholder="타일 분절 (你 去 哪儿) · 비우면 글자단위" onChange={(e) => mutate((b) => { sec(b, li, si).passages[pi].tokens = e.target.value.split(' ').filter(Boolean) })} />}
+                            <AudioField lang={book.lang} value={p.audio} slug={p.text} onChange={(f) => mutate((b) => { sec(b, li, si).passages[pi].audio = f })} />
+                            {book.lang !== 'en' && <input className="tok" value={(p.tokens ?? []).join(' ')} placeholder="타일 분절 (你 去 哪儿) · 비우면 글자단위" onChange={(e) => mutate((b) => { sec(b, li, si).passages[pi].tokens = e.target.value.split(' ').filter(Boolean) })} />}
                           </div>
                         </div>
                       ))}
@@ -335,11 +358,11 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
                         <div key={wi} className="edit-item">
                           <div className="edit-line">
                             <input value={w.text} placeholder="단어 (你好)" onChange={(e) => mutate((b) => { sec(b, li, si).words[wi].text = e.target.value })} />
-                            {course.id !== 'en' && <input value={w.reading ?? ''} placeholder="발음" onChange={(e) => mutate((b) => { sec(b, li, si).words[wi].reading = e.target.value || undefined })} />}
+                            {book.lang !== 'en' && <input value={w.reading ?? ''} placeholder="발음" onChange={(e) => mutate((b) => { sec(b, li, si).words[wi].reading = e.target.value || undefined })} />}
                             <input value={w.meaning} placeholder="뜻" onChange={(e) => mutate((b) => { sec(b, li, si).words[wi].meaning = e.target.value })} />
                             <button className="mini-del" onClick={() => mutate((b) => { sec(b, li, si).words.splice(wi, 1) })}>✕</button>
                           </div>
-                          <AudioField courseId={course.id} value={w.audio} slug={w.text} onChange={(f) => mutate((b) => { sec(b, li, si).words[wi].audio = f })} />
+                          <AudioField lang={book.lang} value={w.audio} slug={w.text} onChange={(f) => mutate((b) => { sec(b, li, si).words[wi].audio = f })} />
                         </div>
                       ))}
                       <button className="pill soft" onClick={() => mutate((b) => { sec(b, li, si).words.push(newWord(sec(b, li, si).id)) })}>＋ 새단어</button>
@@ -385,7 +408,7 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
             {custom && (
               <button className="pill danger big" onClick={() => {
                 const msg = builtin ? '수정 내용을 버리고 원래 내장 책으로 되돌릴까요?' : '이 책을 책장에서 삭제할까요?'
-                if (confirm(msg)) { deleteCustomBook(course.id, book.id); onDone(builtin ? book.id : undefined) }
+                if (confirm(msg)) { deleteCustomBook(book.id); onDone(builtin ? book.id : undefined) }
               }}>{builtin ? '원본으로 되돌리기' : '책 삭제'}</button>
             )}
           </div>

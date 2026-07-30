@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Course, Unit } from '../types'
+import type { Unit } from '../types'
 import { doneChapterCount, isChapterDone, type AppState } from '../lib/storage'
 import { checkAudioFiles, playMp3 } from '../lib/audio'
 import { bookAudioFiles } from '../lib/lessonModel'
@@ -9,7 +9,6 @@ import ImageThumb from './ImageThumb'
 import Taskbar from './Taskbar'
 
 interface Props {
-  course: Course
   book: Unit
   state: AppState
   onBack: () => void
@@ -17,9 +16,10 @@ interface Props {
   onEdit: () => void
 }
 
-export default function BookPage({ course, book, state, onBack, onOpenChapter, onEdit }: Props) {
+export default function BookPage({ book, state, onBack, onOpenChapter, onEdit }: Props) {
   const [tab, setTab] = useState<'chapters' | 'content'>('chapters')
   const [audioOk, setAudioOk] = useState<Set<string>>(new Set())
+  const lang = book.lang // 오디오·이미지 네임스페이스
 
   const chapterIds = book.lessons.map((l) => l.id)
   const done = doneChapterCount(state, chapterIds)
@@ -29,12 +29,12 @@ export default function BookPage({ course, book, state, onBack, onOpenChapter, o
 
   useEffect(() => {
     const files = bookAudioFiles(book)
-    if (files.length > 0) checkAudioFiles(course.id, files).then(setAudioOk)
-  }, [book, course.id])
+    if (files.length > 0) checkAudioFiles(lang, files).then(setAudioOk)
+  }, [book, lang])
 
   const Speaker = ({ file }: { file?: string }) =>
     file && audioOk.has(file) ? (
-      <button className="spk" onClick={() => playMp3(course.id, file)}>🔊</button>
+      <button className="spk" onClick={() => playMp3(lang, file)}>🔊</button>
     ) : (
       <span className="spk off">·</span>
     )
@@ -52,7 +52,7 @@ export default function BookPage({ course, book, state, onBack, onOpenChapter, o
           {/* 주소창 */}
           <div className="url-bar">
             <span className="url-back" onClick={onBack}>‹</span>
-            <span className="url-text">shelf://{course.id}/{book.id}</span>
+            <span className="url-text">shelf://{book.lang}/{book.id}</span>
             <button className="url-edit" onClick={onEdit}>✏️ 편집</button>
           </div>
 
@@ -107,7 +107,7 @@ export default function BookPage({ course, book, state, onBack, onOpenChapter, o
                         {(section.images ?? []).length > 0 && (
                           <div className="img-gallery">
                             {section.images!.map((img, i) => (
-                              <ImageThumb key={i} ns={course.id} file={img} className="gallery-thumb" />
+                              <ImageThumb key={i} ns={lang} file={img} className="gallery-thumb" />
                             ))}
                           </div>
                         )}
@@ -117,7 +117,7 @@ export default function BookPage({ course, book, state, onBack, onOpenChapter, o
                             <div className="content-kind">
                               📖 본문
                               {section.passageAudio && audioOk.has(section.passageAudio) && (
-                                <button className="spk inline" onClick={() => playMp3(course.id, section.passageAudio!)}>🔊 전체 듣기</button>
+                                <button className="spk inline" onClick={() => playMp3(lang, section.passageAudio!)}>🔊 전체 듣기</button>
                               )}
                             </div>
                             <p className="passage-text">{section.passageText}</p>
@@ -179,7 +179,7 @@ export default function BookPage({ course, book, state, onBack, onOpenChapter, o
                     ))}
                   </div>
                 ))}
-                <p className="vocab-hint">🔊 는 mp3가 있는 항목이에요. 편집 화면에서 파일을 업로드하거나 <code>public/audio/{course.id}/</code> 폴더에 넣으면 켜집니다.</p>
+                <p className="vocab-hint">🔊 는 mp3가 있는 항목이에요. 편집 화면에서 파일을 업로드하거나 <code>public/audio/{lang}/</code> 폴더에 넣으면 켜집니다.</p>
               </div>
             )}
           </div>

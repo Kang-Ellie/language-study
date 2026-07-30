@@ -1,6 +1,6 @@
-import type { Course } from '../types'
+import type { Unit } from '../types'
 import { doneChapterCount, type AppState } from '../lib/storage'
-import { courses } from '../data'
+import { LANGUAGES } from '../data'
 import { dueWords } from '../lib/srs'
 import { isCustomBook } from '../lib/books'
 import Marquee from './Marquee'
@@ -9,7 +9,7 @@ import Taskbar from './Taskbar'
 interface Props {
   state: AppState
   setState: (fn: (s: AppState) => AppState) => void
-  course: Course
+  books: Unit[] // 지금 선택된 언어의 책만
   onOpenBook: (bookId: string) => void
   onNewBook: () => void
   onStartReview: () => void
@@ -32,8 +32,9 @@ function exeName(book: { id: string }): string {
   return `${base || 'BOOK'}.EXE`
 }
 
-export default function Shelf({ state, setState, course, onOpenBook, onNewBook, onStartReview, onProfile }: Props) {
-  const due = dueWords(state, course)
+export default function Shelf({ state, setState, books, onOpenBook, onNewBook, onStartReview, onProfile }: Props) {
+  const due = dueWords(state, books)
+  const language = LANGUAGES.find((l) => l.id === state.lang) ?? LANGUAGES[0]
   const goalPct = Math.min(100, Math.round((state.xpToday / state.dailyGoal) * 100))
 
   return (
@@ -51,9 +52,9 @@ export default function Shelf({ state, setState, course, onOpenBook, onNewBook, 
           </div>
           <div className="win-body hero-body">
             <div className="course-tabs">
-              {courses.map((c) => (
-                <button key={c.id} className={`pill ${c.id === course.id ? 'active' : ''}`} onClick={() => setState((s) => ({ ...s, courseId: c.id }))}>
-                  {c.flag} {c.name}
+              {LANGUAGES.map((l) => (
+                <button key={l.id} className={`pill ${l.id === state.lang ? 'active' : ''}`} onClick={() => setState((s) => ({ ...s, lang: l.id }))}>
+                  {l.flag} {l.name}
                 </button>
               ))}
             </div>
@@ -75,11 +76,11 @@ export default function Shelf({ state, setState, course, onOpenBook, onNewBook, 
 
         {/* 책 = .EXE 창들 */}
         <div className="win-grid">
-          {course.units.map((book, i) => {
+          {books.map((book, i) => {
             const done = doneChapterCount(state, book.lessons.map((l) => l.id))
             const total = book.lessons.length
             const pct = total > 0 ? Math.round((done / total) * 100) : 0
-            const custom = isCustomBook(course.id, book.id)
+            const custom = isCustomBook(book.id)
             return (
               <button key={book.id} className="win book-win" onClick={() => onOpenBook(book.id)}>
                 <div className={`win-bar ${BARS[i % BARS.length]}`}>
@@ -121,7 +122,7 @@ export default function Shelf({ state, setState, course, onOpenBook, onNewBook, 
         </div>
       </div>
 
-      <Taskbar label={`${course.flag} ${course.name} 책장`} onStart={onProfile} />
+      <Taskbar label={`${language.flag} ${language.name} 책장`} onStart={onProfile} />
     </div>
   )
 }

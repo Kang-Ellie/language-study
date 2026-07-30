@@ -22,6 +22,12 @@ export type SectionKind = 'passage' | 'vocab' | 'grammar' | 'writing' | 'speakin
 /** SRS·통계가 참조하는 전역 고유 키 */
 export type ItemId = string
 
+/** 언어 코드. 유니온이 아니라 문자열이다 — 언어를 늘려도 타입을 고칠 일이 없다. */
+export type Lang = string
+
+/** 학습 항목의 두 갈래. 저장 구조는 나뉘어 있고, 퀴즈는 StudyItem으로 합쳐 본다. */
+export type ItemType = 'word' | 'sentence'
+
 export interface Word {
   id: ItemId
   text: string
@@ -79,6 +85,7 @@ export interface Lesson {
 // 책
 export interface Unit {
   id: string
+  lang: Lang // 책이 자기 언어를 갖는다 (상위 Course 계층 폐기)
   title: string
   emoji: string
   track: 'foundation' | 'media' | 'vocab'
@@ -89,11 +96,35 @@ export interface Unit {
   updatedAt?: string
 }
 
-export interface Course {
-  id: 'zh' | 'en' | 'ja'
+/** 책장 탭에 쓰는 언어 표시 정보. 책 목록은 Book.lang으로 걸러낸다. */
+export interface Language {
+  id: Lang
   name: string
   flag: string
-  units: Unit[]
+}
+
+/**
+ * 퀴즈 엔진이 보는 통합 항목 뷰.
+ *
+ * 저장 구조는 Word / Sentence / Grammar.examples 로 나뉘어 있다 — 화면이 이 셋을
+ * 서로 다르게 그리기 때문이다. 하지만 퀴즈는 "범위 안의 출제 가능한 것 전부"를
+ * 한 줄로 세워 가중 샘플링해야 하므로, 수집 시점에 이 모양으로 투영한다.
+ * 저장 구조를 바꾸지 않고도 엔진 쪽 코드가 한 벌로 유지된다.
+ */
+export interface StudyItem {
+  id: ItemId
+  type: ItemType
+  lang: Lang
+  text: string
+  reading?: string
+  meaning: string
+  audio?: string
+  tokens?: string[] // sentence
+  pos?: string // word
+  bookId: string
+  chapterId: string
+  sectionId: string
+  sectionKind?: SectionKind
 }
 
 // ── 문제 유형 ──────────────────────────────

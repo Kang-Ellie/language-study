@@ -1,4 +1,4 @@
-import type { Course, Exercise, Lesson, Sentence, Unit, Word } from '../types'
+import type { Exercise, Lesson, Sentence, Unit, Word } from '../types'
 import { bookWords, lessonSentences, lessonWords } from './lessonModel'
 
 function shuffle<T>(arr: T[]): T[] {
@@ -48,7 +48,7 @@ interface Pools {
   koWords: string[]
 }
 
-function buildPools(unit: Unit, course: Course): Pools {
+function buildPools(unit: Unit, siblings: Unit[]): Pools {
   const words: Word[] = []
   const tokens = new Set<string>()
   const koWords = new Set<string>()
@@ -63,8 +63,8 @@ function buildPools(unit: Unit, course: Course): Pools {
     }
   }
   collect(unit)
-  // 풀이 작으면 코스 전체에서 보충
-  if (words.length < 12) course.units.forEach(collect)
+  // 풀이 작으면 같은 언어의 다른 책에서 보충
+  if (words.length < 12) siblings.filter((b) => b.id !== unit.id && b.lang === unit.lang).forEach(collect)
   return { words, tokens: [...tokens], koWords: [...koWords] }
 }
 
@@ -91,13 +91,13 @@ function bankTiles(answer: string[], distractors: string[]): string[] {
  * 유닛 초반 레슨은 "고르기" 위주, 후반 레슨은 타이핑 포함 (난이도 점진 상승)
  */
 export function buildLessonExercises(
-  course: Course,
   unit: Unit,
   lesson: Lesson,
+  siblings: Unit[],
   audioOk: Set<string>
 ): Exercise[] {
   const lessonIdx = Math.max(0, unit.lessons.findIndex((l) => l.id === lesson.id))
-  const pools = buildPools(unit, course)
+  const pools = buildPools(unit, siblings)
   const ex: Exercise[] = []
   const lWords = lessonWords(lesson).filter((w) => w.text && w.meaning)
   const lSentences = lessonSentences(lesson).filter((s) => s.text)
@@ -221,7 +221,7 @@ export function buildLessonExercises(
   // 6) 유닛 후반 레슨 — 직접 타이핑 (쓰기)
   if (later) {
     for (const w of pickN(lWords, 2)) {
-      if (course.id === 'en') {
+      if (unit.lang === 'en') {
         ex.push({
           kind: 'type',
           question: `"${w.meaning}" 을(를) 영어로 써 보세요`,
@@ -246,11 +246,11 @@ export function buildLessonExercises(
 }
 
 /** 복습 세션 — 잊기 직전 단어들 위주로 출제 */
-export function buildReviewExercises(course: Course, due: Word[], allWords: Word[]): Exercise[] {
+export function buildReviewExercises(lang: string, due: Word[], allWords: Word[]): Exercise[] {
   const ex: Exercise[] = []
   const targets = due.slice(0, 10)
   targets.forEach((w, i) => {
-    if (i % 3 === 2 && course.id === 'en') {
+    if (i % 3 === 2 && lang === 'en') {
       ex.push({
         kind: 'type',
         question: `"${w.meaning}" 을(를) 영어로 써 보세요`,
@@ -292,9 +292,10 @@ export function buildReviewExercises(course: Course, due: Word[], allWords: Word
   return ex
 }
 
-export function courseAllWords(course: Course): Word[] {
+/** 주어진 책들의 단어 전부 (중복 텍스트 제거) — 복습 보기 풀 */
+export function allWordsOf(books: Unit[]): Word[] {
   const all: Word[] = []
-  for (const u of course.units)
+  for (const u of books)
     for (const w of bookWords(u)) if (w.text && !all.some((x) => x.text === w.text)) all.push(w)
   return all
 }

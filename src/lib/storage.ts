@@ -1,7 +1,7 @@
 // localStorage 기반 상태 저장 — 진행도 / SRS / 스트릭 / XP / 설정
 import type { ItemId } from '../types'
 
-export const SCHEMA_VERSION = 2
+export const SCHEMA_VERSION = 3
 
 export interface SrsEntry {
   level: number // 0~5 숙련도
@@ -23,7 +23,7 @@ export interface ChapterProgress {
 
 export interface AppState {
   schemaVersion: number
-  courseId: 'zh' | 'en' | 'ja'
+  lang: string // 지금 보고 있는 책장 탭. 언어를 늘려도 타입을 고칠 일이 없다
   xp: number
   xpToday: number
   xpDate: string
@@ -59,7 +59,7 @@ function yesterday(): string {
 export function defaults(): AppState {
   return {
     schemaVersion: SCHEMA_VERSION,
-    courseId: 'zh',
+    lang: 'zh',
     xp: 0,
     xpToday: 0,
     xpDate: today(),

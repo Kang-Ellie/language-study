@@ -11,7 +11,7 @@ import {
   type AppState,
 } from './lib/storage'
 import type { MigrationReport } from './lib/migrate'
-import { getMergedCourse } from './lib/books'
+import { booksOfLang, getAllBooks } from './lib/books'
 import Shelf from './components/Shelf'
 import BookPage from './components/BookPage'
 import ChapterPage from './components/ChapterPage'
@@ -32,8 +32,8 @@ type View =
   | { name: 'profile' }
 
 /** 책과 챕터를 id로 찾는다. 못 찾으면 undefined */
-function locate(units: Unit[], bookId: string, chapterId?: string): { book?: Unit; chapter?: Lesson } {
-  const book = units.find((u) => u.id === bookId)
+function locate(books: Unit[], bookId: string, chapterId?: string): { book?: Unit; chapter?: Lesson } {
+  const book = books.find((u) => u.id === bookId)
   if (!book) return {}
   if (chapterId === undefined) return { book }
   return { book, chapter: book.lessons.find((l) => l.id === chapterId) }
@@ -49,7 +49,9 @@ export default function App({ report }: { report?: MigrationReport }) {
     saveState(state)
   }, [state])
 
-  const course = useMemo(() => getMergedCourse(state.courseId), [state.courseId, bookVer])
+  // 모든 책 (내장 + 내 책). 언어 필터는 화면에서 건다.
+  const allBooks = useMemo(() => getAllBooks(), [bookVer])
+  const langBooks = useMemo(() => booksOfLang(allBooks, state.lang), [allBooks, state.lang])
 
   function finishLesson(result: LessonResult, bookId?: string, chapterId?: string) {
     setState((s) => {
@@ -83,11 +85,12 @@ export default function App({ report }: { report?: MigrationReport }) {
   }
 
   if (view.name === 'lesson' || view.name === 'review') {
-    const found = view.name === 'lesson' ? locate(course.units, view.bookId, view.chapterId) : {}
+    const found = view.name === 'lesson' ? locate(allBooks, view.bookId, view.chapterId) : {}
     return (
       <LessonScreen
-        course={course}
-        unit={found.book}
+        lang={state.lang}
+        books={langBooks}
+        book={found.book}
         lesson={found.chapter}
         isReview={view.name === 'review'}
         state={state}
@@ -125,14 +128,14 @@ export default function App({ report }: { report?: MigrationReport }) {
   }
 
   if (view.name === 'profile') {
-    return <Profile state={state} setState={setState} course={course} onBack={() => setView({ name: 'shelf' })} />
+    return <Profile state={state} setState={setState} books={langBooks} onBack={() => setView({ name: 'shelf' })} />
   }
 
   if (view.name === 'edit') {
-    const book = view.bookId ? course.units.find((u) => u.id === view.bookId) : undefined
+    const book = view.bookId ? allBooks.find((u) => u.id === view.bookId) : undefined
     return (
       <Editor
-        course={course}
+        lang={state.lang}
         initial={book}
         onDone={(savedId) => {
           setBookVer((v) => v + 1)
@@ -144,7 +147,7 @@ export default function App({ report }: { report?: MigrationReport }) {
   }
 
   if (view.name === 'chapter') {
-    const { book, chapter } = locate(course.units, view.bookId, view.chapterId)
+    const { book, chapter } = locate(allBooks, view.bookId, view.chapterId)
     if (!book) {
       setView({ name: 'shelf' })
       return null
@@ -156,7 +159,6 @@ export default function App({ report }: { report?: MigrationReport }) {
     }
     return (
       <ChapterPage
-        course={course}
         book={book}
         chapter={chapter}
         isDone={isChapterDone(state, chapter.id)}
@@ -169,14 +171,13 @@ export default function App({ report }: { report?: MigrationReport }) {
   }
 
   if (view.name === 'book') {
-    const book = course.units.find((u) => u.id === view.bookId)
+    const book = allBooks.find((u) => u.id === view.bookId)
     if (!book) {
       setView({ name: 'shelf' })
       return null
     }
     return (
       <BookPage
-        course={course}
         book={book}
         state={state}
         onBack={() => setView({ name: 'shelf' })}
@@ -190,7 +191,7 @@ export default function App({ report }: { report?: MigrationReport }) {
     <Shelf
       state={state}
       setState={setState}
-      course={course}
+      books={langBooks}
       onOpenBook={(bookId) => setView({ name: 'book', bookId })}
       onNewBook={() => setView({ name: 'edit' })}
       onStartReview={() => setView({ name: 'review' })}

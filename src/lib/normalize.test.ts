@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { adoptIds, isNormalized, normalizeBook, type RawUnit } from './normalize'
+import { adoptIds, isNormalized, normalizeBook, rekeyBook, type RawUnit } from './normalize'
 
 const flatBook: RawUnit = {
   id: 'zh-demo',
+  lang: 'zh',
   title: '데모 교재',
   lessons: [
     {
@@ -220,5 +221,52 @@ describe('adoptIds', () => {
     const ids = book.lessons[0].sections[0].words.map((w) => w.id)
     expect(ids[0]).toBe('zh-demo/c1/s1/w1')
     expect(ids[1]).not.toBe(ids[0])
+  })
+})
+
+
+describe('langOf (책의 언어)', () => {
+  it('lang 필드를 최우선으로 쓴다', () => {
+    expect(normalizeBook({ id: 'zh-x', lang: 'ja', title: 't' }, 'f').lang).toBe('ja')
+  })
+
+  it('lang이 없으면 id 접두사에서 유추한다 (예전 데이터)', () => {
+    expect(normalizeBook({ id: 'ja-spy-family', title: 't' }, 'f').lang).toBe('ja')
+    expect(normalizeBook({ id: 'en-book-123', title: 't' }, 'f').lang).toBe('en')
+  })
+
+  it('유추할 수 없으면 기본값', () => {
+    expect(normalizeBook({ id: 'mybook', title: 't' }, 'f').lang).toBe('zh')
+  })
+})
+
+describe('rekeyBook', () => {
+  const book = normalizeBook(flatBook, 'zh-demo')
+
+  it('책 id와 하위 id를 전부 따라 바꾼다', () => {
+    const moved = rekeyBook(book, 'en-book-999')
+    expect(moved.id).toBe('en-book-999')
+    expect(moved.lessons[0].id).toBe('en-book-999/c1')
+    expect(moved.lessons[0].sections[0].id).toBe('en-book-999/c1/s1')
+    expect(moved.lessons[0].sections[0].words[0].id).toBe('en-book-999/c1/s1/w1')
+    expect(moved.lessons[0].sections[0].passages[0].id).toBe('en-book-999/c1/s1/p1')
+  })
+
+  it('같은 id면 원본을 그대로 돌려준다', () => {
+    expect(rekeyBook(book, 'zh-demo')).toBe(book)
+  })
+
+  it('책 id를 접두사로 쓰지 않는 id는 건드리지 않는다', () => {
+    const odd = normalizeBook(
+      { id: 'b', lang: 'zh', title: 't', lessons: [{ id: '손으로-쓴-id', title: '1과' }] },
+      'b'
+    )
+    expect(rekeyBook(odd, 'c').lessons[0].id).toBe('손으로-쓴-id')
+  })
+
+  it('내용은 그대로다', () => {
+    const moved = rekeyBook(book, 'x')
+    expect(moved.lessons[0].sections[0].words[0].text).toBe('去')
+    expect(moved.title).toBe('데모 교재')
   })
 })

@@ -2,10 +2,10 @@
 // 여기서 검사하는 건 문제의 예쁨이 아니라 **불변식**이다 — 정답이 보기 안에 있는가,
 // SRS 키가 실재하는 항목 id인가, 없는 오디오로 듣기 문제를 내지 않는가.
 import { describe, expect, it } from 'vitest'
-import type { Course, Unit } from '../types'
+import type { Unit } from '../types'
 import { normalizeBook } from './normalize'
 import { bookSentences, bookWords } from './lessonModel'
-import { buildLessonExercises, buildReviewExercises, courseAllWords, normalize, sentenceTokens } from './exercises'
+import { allWordsOf, buildLessonExercises, buildReviewExercises, normalize, sentenceTokens } from './exercises'
 
 const book: Unit = normalizeBook(
   {
@@ -44,7 +44,7 @@ const book: Unit = normalizeBook(
   'zh-t'
 )
 
-const course: Course = { id: 'zh', name: '중국어', flag: '🇨🇳', units: [book] }
+const books = [book]
 
 /** 이 책에 실재하는 모든 항목 id */
 const validIds = new Set([...bookWords(book), ...bookSentences(book)].map((x) => x.id))
@@ -53,13 +53,13 @@ describe('buildLessonExercises', () => {
   const chapter = book.lessons[0]
 
   it('문제를 만든다', () => {
-    expect(buildLessonExercises(course, book, chapter, new Set()).length).toBeGreaterThan(0)
+    expect(buildLessonExercises(book, chapter, books, new Set()).length).toBeGreaterThan(0)
   })
 
   it('모든 srsKey가 실재하는 항목 id다', () => {
     // v1에서는 문장 문제가 포함된 단어의 키를 빌려 썼고, 듣기 조립은 키가 아예 비어 있었다.
     for (let run = 0; run < 20; run++) {
-      for (const ex of buildLessonExercises(course, book, chapter, new Set())) {
+      for (const ex of buildLessonExercises(book, chapter, books, new Set())) {
         expect(ex.srsKeys.length).toBeGreaterThan(0)
         for (const key of ex.srsKeys) expect(validIds).toContain(key)
       }
@@ -68,7 +68,7 @@ describe('buildLessonExercises', () => {
 
   it('4지선다는 정답이 보기 안에 있고 보기가 중복되지 않는다', () => {
     for (let run = 0; run < 20; run++) {
-      for (const ex of buildLessonExercises(course, book, chapter, new Set())) {
+      for (const ex of buildLessonExercises(book, chapter, books, new Set())) {
         if (ex.kind !== 'pick') continue
         expect(ex.options).toContain(ex.answer)
         expect(new Set(ex.options).size).toBe(ex.options.length)
@@ -78,7 +78,7 @@ describe('buildLessonExercises', () => {
 
   it('조립 문제의 정답 타일이 전부 제공된 타일 안에 있다', () => {
     for (let run = 0; run < 20; run++) {
-      for (const ex of buildLessonExercises(course, book, chapter, new Set())) {
+      for (const ex of buildLessonExercises(book, chapter, books, new Set())) {
         if (ex.kind !== 'bank') continue
         const pool = [...ex.tiles]
         for (const t of ex.answer) {
@@ -92,7 +92,7 @@ describe('buildLessonExercises', () => {
 
   it('오디오가 없으면 듣기 문제를 내지 않는다', () => {
     for (let run = 0; run < 20; run++) {
-      for (const ex of buildLessonExercises(course, book, chapter, new Set())) {
+      for (const ex of buildLessonExercises(book, chapter, books, new Set())) {
         if (ex.kind === 'pick' || ex.kind === 'bank') expect(ex.audioOnly).toBeFalsy()
       }
     }
@@ -120,9 +120,8 @@ describe('buildLessonExercises', () => {
       },
       'zh-a'
     )
-    const c: Course = { ...course, units: [withAudio] }
     for (let run = 0; run < 20; run++) {
-      for (const ex of buildLessonExercises(c, withAudio, withAudio.lessons[0], new Set(['yes.mp3']))) {
+      for (const ex of buildLessonExercises(withAudio, withAudio.lessons[0], [withAudio], new Set(['yes.mp3']))) {
         if ('promptAudio' in ex && ex.promptAudio) expect(ex.promptAudio).toBe('yes.mp3')
       }
     }
@@ -130,14 +129,14 @@ describe('buildLessonExercises', () => {
 
   it('빈 챕터에서도 죽지 않는다', () => {
     const empty = normalizeBook({ id: 'e', title: 'e', lessons: [{ title: '빈 과' }] }, 'e')
-    expect(() => buildLessonExercises({ ...course, units: [empty] }, empty, empty.lessons[0], new Set())).not.toThrow()
+    expect(() => buildLessonExercises(empty, empty.lessons[0], [empty], new Set())).not.toThrow()
   })
 })
 
 describe('buildReviewExercises', () => {
   it('복습 문제의 srsKey도 실재하는 id다', () => {
     const due = bookWords(book).slice(0, 4)
-    for (const ex of buildReviewExercises(course, due, courseAllWords(course))) {
+    for (const ex of buildReviewExercises('zh', due, allWordsOf(books))) {
       for (const key of ex.srsKeys) expect(validIds).toContain(key)
     }
   })

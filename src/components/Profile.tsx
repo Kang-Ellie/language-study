@@ -1,22 +1,24 @@
 import { useEffect, useState } from 'react'
-import type { Course } from '../types'
+import type { Unit } from '../types'
 import { MAX_HEARTS, resetAll, type AppState } from '../lib/storage'
 import { learnedCount } from '../lib/srs'
 import { audioUsageMb } from '../lib/audioStore'
 import { imageUsageMb } from '../lib/imageStore'
+import { languageOf } from '../data'
 import BackupPanel from './BackupPanel'
 
 export default function Profile({
   state,
   setState,
-  course,
+  books,
   onBack,
 }: {
   state: AppState
   setState: (fn: (s: AppState) => AppState) => void
-  course: Course
+  books: Unit[]
   onBack: () => void
 }) {
+  const language = languageOf(state.lang)
   const [mp3Mb, setMp3Mb] = useState<number | null>(null)
   const [imgMb, setImgMb] = useState<number | null>(null)
   useEffect(() => {
@@ -59,8 +61,8 @@ export default function Profile({
         </div>
         <div className="result-card">
           <div className="result-label">📚 학습 단어</div>
-          <div className="result-value">{learnedCount(state, course)}</div>
-          <div className="result-sub">{course.flag} {course.name}</div>
+          <div className="result-value">{learnedCount(state, books)}</div>
+          <div className="result-sub">{language.flag} {language.name}</div>
         </div>
       </div>
 

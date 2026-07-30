@@ -3,7 +3,7 @@ import { hasAudioStored, putAudio } from '../lib/audioStore'
 import { playMp3 } from '../lib/audio'
 
 interface Props {
-  courseId: string
+  lang: string
   value: string | undefined // 파일명
   onChange: (file: string | undefined) => void
   slug?: string // 업로드 시 자동 파일명 힌트
@@ -18,20 +18,20 @@ function slugify(s: string): string {
 }
 
 /** mp3 파일명 입력 + 업로드(IndexedDB) + 재생 — 둘 다 지원 */
-export default function AudioField({ courseId, value, onChange, slug }: Props) {
+export default function AudioField({ lang, value, onChange, slug }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [stored, setStored] = useState(false)
 
   useEffect(() => {
-    if (value) hasAudioStored(courseId, value).then(setStored)
+    if (value) hasAudioStored(lang, value).then(setStored)
     else setStored(false)
-  }, [courseId, value])
+  }, [lang, value])
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     const name = value && value.trim() ? value.trim() : `${slugify(slug ?? '')}-${Date.now()}.mp3`
-    await putAudio(courseId, name, file)
+    await putAudio(lang, name, file)
     setStored(true)
     onChange(name)
     e.target.value = ''
@@ -49,7 +49,7 @@ export default function AudioField({ courseId, value, onChange, slug }: Props) {
         {stored ? '✓' : '⬆'}
       </button>
       {value && (
-        <button type="button" className="af-btn" title="미리 듣기" onClick={() => playMp3(courseId, value)}>
+        <button type="button" className="af-btn" title="미리 듣기" onClick={() => playMp3(lang, value)}>
           🔊
         </button>
       )}

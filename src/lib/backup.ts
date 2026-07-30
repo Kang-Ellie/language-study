@@ -86,10 +86,15 @@ function countLogEntries(rawLogs: string | null): number {
   }
 }
 
+/** 내 책 저장은 평평한 배열이다. 옛 백업(Record<언어, 책[]>)도 읽을 수 있어야 한다. */
 function countBooks(rawBooks: string | null): number {
   try {
-    const map = JSON.parse(rawBooks || '{}') as Record<string, unknown[]>
-    return Object.values(map).reduce((n, list) => n + (Array.isArray(list) ? list.length : 0), 0)
+    const data = JSON.parse(rawBooks || '[]')
+    if (Array.isArray(data)) return data.length
+    return Object.values(data as Record<string, unknown[]>).reduce(
+      (n, list) => n + (Array.isArray(list) ? list.length : 0),
+      0
+    )
   } catch {
     return 0
   }
@@ -217,6 +222,36 @@ export async function readBackup(file: File): Promise<BackupBundle> {
   return { manifest, entries }
 }
 
+/** 옛 백업의 Record<언어, 책[]> 도 평평한 배열로 펴서 읽는다 */
+function flattenBooks(raw: string | null): { id?: string; lang?: string }[] {
+  const data = safeParse<unknown>(raw)
+  if (Array.isArray(data)) return data as { id?: string }[]
+  if (data && typeof data === 'object') {
+    const out: { id?: string; lang?: string }[] = []
+    for (const [lang, list] of Object.entries(data as Record<string, unknown>)) {
+      if (Array.isArray(list)) for (const b of list) out.push({ lang, ...(b as object) })
+    }
+    return out
+  }
+  return []
+}
+
+/** 백업에만 있는 책을 추가한다 (같은 id는 지금 기기 것을 유지) */
+function mergeBooks(currentRaw: string | null, backupRaw: string): { merged: string; added: number; warning?: string } {
+  const current = flattenBooks(currentRaw)
+  const backup = flattenBooks(backupRaw)
+  const have = new Set(current.map((b) => b.id ?? ''))
+  const extra = backup.filter((b) => b.id && !have.has(b.id))
+  const merged = [...current, ...extra]
+  // 백업이 오래된 스키마면 여기서 폈으니, 다음 부팅 때 마이그레이션이 나머지를 맞춘다
+  const stale = merged.some((b) => !b.lang)
+  return {
+    merged: JSON.stringify(merged),
+    added: extra.length,
+    warning: stale ? '오래된 형식의 책이 있어 다음 실행 때 자동으로 변환됩니다.' : undefined,
+  }
+}
+
 function mergeRecordOfLists<T>(
   currentRaw: string | null,
   backupRaw: string,
@@ -297,13 +332,10 @@ export async function applyBackup(
     }
   } else {
     if (booksRaw) {
-      const r = mergeRecordOfLists<{ id: string }>(
-        localStorage.getItem(BOOKS_KEY),
-        asText(booksRaw)!,
-        (u) => u?.id ?? ''
-      )
+      const r = mergeBooks(localStorage.getItem(BOOKS_KEY), asText(booksRaw)!)
       localStorage.setItem(BOOKS_KEY, r.merged)
       summary.booksAdded = r.added
+      if (r.warning) summary.warnings.push(r.warning)
     }
     if (logsRaw) {
       const r = mergeRecordOfLists<{ id: string }>(

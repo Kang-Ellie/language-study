@@ -1,23 +1,31 @@
-// schemaVersion 1 → 2 마이그레이션.
+// 저장된 데이터의 스키마 마이그레이션.
 //
-// v1에서 모든 참조는 "배열 인덱스"와 "단어 텍스트"였다.
-//   - 학습 기록 키: `${courseId}|${bookId}|${lessonIdx}`  → 챕터를 끼워 넣으면 전부 밀린다
-//   - 진도:        completed[bookId] = 완료한 개수         → 7과만 완료해도 1~6과가 딸려 완료된다
-//   - SRS 키:      `${courseId}|${단어텍스트}`             → 오타를 고치면 이력이 사라진다
-// v2는 셋 다 항목 id를 참조한다.
+// 버전을 하나씩 올리는 체인이다. 저장된 schemaVersion부터 시작해 필요한 단계만 순서대로
+// 적용한다. 각 단계는 그 앞 단계의 결과를 입력으로 받으므로, 몇 버전을 건너뛴 오래된
+// 데이터도 한 번에 최신까지 올라온다.
 //
-// 되돌릴 수 없으므로 **변환 전 원본 3개 키를 통째로 스냅샷**해 둔다(텍스트라 용량 부담 없음).
-// IndexedDB의 녹음·사진은 이 마이그레이션이 건드리지 않는다.
+//   v1 → v2  배열 인덱스·텍스트 참조를 항목 id 참조로
+//              - 학습 기록 키: `${courseId}|${bookId}|${lessonIdx}` → chapterId
+//              - 진도:        completed[bookId]=개수 → progress[chapterId]=플래그
+//              - SRS 키:      `${courseId}|${단어텍스트}` → 항목 id
+//   v2 → v3  언어(Course) 계층 폐기
+//              - 내 책 저장: Record<언어, 책[]> → 책[] (각 책이 lang을 가짐)
+//              - 상태:      courseId → lang
+//
+// 되돌릴 수 없으므로 **첫 변환 전 원본 3개 키를 통째로 스냅샷**해 둔다(텍스트라 용량 부담 없음).
+// IndexedDB의 녹음·사진은 마이그레이션이 건드리지 않는다.
 import type { Unit } from '../types'
-import { normalizeBook, type RawUnit } from './normalize'
+import { langOf, normalizeBook, type RawUnit } from './normalize'
 import { BOOKS_KEY } from './books'
 import { LOG_KEY } from './studyLog'
-import { SCHEMA_VERSION, STATE_KEY, type AppState, type ChapterProgress, type SrsEntry } from './storage'
+import { SCHEMA_VERSION, STATE_KEY, type ChapterProgress, type SrsEntry } from './storage'
 
 export const BACKUP_SUFFIX = '-pre-v2'
 
 export interface MigrationReport {
   ran: boolean
+  from: number
+  to: number
   booksNormalized: number
   srsMatched: number
   srsDropped: number
@@ -27,15 +35,26 @@ export interface MigrationReport {
   notes: string[]
 }
 
-const EMPTY: MigrationReport = {
-  ran: false,
-  booksNormalized: 0,
-  srsMatched: 0,
-  srsDropped: 0,
-  chaptersMarkedDone: 0,
-  logsRekeyed: 0,
-  logsDropped: 0,
-  notes: [],
+function emptyReport(): MigrationReport {
+  return {
+    ran: false,
+    from: SCHEMA_VERSION,
+    to: SCHEMA_VERSION,
+    booksNormalized: 0,
+    srsMatched: 0,
+    srsDropped: 0,
+    chaptersMarkedDone: 0,
+    logsRekeyed: 0,
+    logsDropped: 0,
+    notes: [],
+  }
+}
+
+/** 마이그레이션이 읽고 쓰는 저장소 전체. 단계 함수는 이 객체를 제자리에서 고친다. */
+interface Store {
+  state: Record<string, unknown> | null
+  books: unknown
+  logs: Record<string, unknown[]> | null
 }
 
 function readJson<T>(key: string): T | null {
@@ -64,99 +83,54 @@ function parseSrsKey(key: string): { courseId: string; text: string } | null {
   return { courseId: key.slice(0, i), text: key.slice(i + 1) }
 }
 
-/**
- * 변환에 쓸 책 목록. 내장 책과 사용자 책을 합쳐 언어별로 모은다.
- * 내장 책은 이미 정규화돼 있고, 사용자 책은 여기서 정규화된다.
- */
-function collectBooks(
-  builtin: Record<string, Unit[]>,
-  custom: Record<string, RawUnit[]>
-): { byCourse: Record<string, Unit[]>; normalized: Record<string, Unit[]>; count: number } {
-  const byCourse: Record<string, Unit[]> = {}
-  const normalized: Record<string, Unit[]> = {}
-  let count = 0
+// ── v1 → v2 ─────────────────────────────────────────────
 
-  for (const [courseId, units] of Object.entries(builtin)) {
-    byCourse[courseId] = [...units]
-  }
-  for (const [courseId, raws] of Object.entries(custom)) {
+function stepV1toV2(store: Store, builtin: Unit[], report: MigrationReport) {
+  // v2 시점의 내 책 저장 구조는 Record<언어, 책[]> 였다
+  const customByLang = (store.books ?? {}) as Record<string, RawUnit[]>
+  const normalizedByLang: Record<string, Unit[]> = {}
+  const allBooks: Unit[] = [...builtin]
+
+  for (const [lang, raws] of Object.entries(customByLang)) {
     if (!Array.isArray(raws)) continue
-    const list = raws.map((raw, i) => normalizeBook(raw, raw.id || `${courseId}-book-migrated-${i}`))
-    normalized[courseId] = list
-    count += list.length
-    // 사용자 책이 같은 id의 내장 책을 덮어쓴다(books.ts의 병합 규칙과 동일)
-    const base = byCourse[courseId] ?? []
-    const shadowed = base.map((u) => list.find((c) => c.id === u.id) ?? u)
-    const extras = list.filter((c) => !base.some((u) => u.id === c.id))
-    byCourse[courseId] = [...shadowed, ...extras]
-  }
-  return { byCourse, normalized, count }
-}
-
-/**
- * v1 → v2 변환. 이미 v2면 아무것도 하지 않는다(멱등).
- * @param builtinByCourse 내장 책 (정규화된 상태로 전달)
- */
-export function migrateV1toV2(builtinByCourse: Record<string, Unit[]>): MigrationReport {
-  const state = readJson<Partial<AppState> & { completed?: Record<string, number> }>(STATE_KEY)
-  const customRaw = readJson<Record<string, RawUnit[]>>(BOOKS_KEY)
-  const logsRaw = readJson<Record<string, unknown[]>>(LOG_KEY)
-
-  // 저장된 게 아무것도 없으면 새 설치 — 버전만 찍고 끝
-  if (state === null && customRaw === null && logsRaw === null) return { ...EMPTY }
-  if ((state?.schemaVersion ?? 1) >= SCHEMA_VERSION) return { ...EMPTY }
-
-  const report: MigrationReport = { ...EMPTY, ran: true, notes: [] }
-
-  // ── 0. 원본 스냅샷 (되돌릴 수 없는 변환이므로) ─────────
-  for (const key of [STATE_KEY, BOOKS_KEY, LOG_KEY]) {
-    const raw = localStorage.getItem(key)
-    if (raw !== null && localStorage.getItem(key + BACKUP_SUFFIX) === null) {
-      try {
-        localStorage.setItem(key + BACKUP_SUFFIX, raw)
-      } catch {
-        report.notes.push('원본 스냅샷 저장 실패 (localStorage 용량 부족) — 변환은 계속합니다.')
-      }
+    const list = raws.map((raw, i) => normalizeBook({ lang, ...raw }, raw.id || `${lang}-book-migrated-${i}`))
+    normalizedByLang[lang] = list
+    report.booksNormalized += list.length
+    for (const book of list) {
+      const at = allBooks.findIndex((b) => b.id === book.id)
+      if (at >= 0) allBooks[at] = book // 내 책이 내장 책을 덮어쓴다
+      else allBooks.push(book)
     }
   }
+  if (store.books !== null) store.books = normalizedByLang
 
-  // ── 1. 사용자 책 정규화 ────────────────────────────────
-  const { byCourse, normalized, count } = collectBooks(builtinByCourse, customRaw ?? {})
-  report.booksNormalized = count
-  if (customRaw !== null) {
-    localStorage.setItem(BOOKS_KEY, JSON.stringify(normalized))
-  }
+  // 언어별 "단어 텍스트 → 항목 id" 색인. 같은 텍스트가 여럿이면 첫 번째만 쓴다.
+  const wordIndex = new Map<string, string>() // `${lang}|${text}`
+  const chapterIndex = new Map<string, string>() // `${lang}|${bookId}|${idx}` → chapterId
+  const chaptersOf = new Map<string, string[]>() // bookId → chapterId[]
 
-  // 언어별 "단어 텍스트 → itemId" 색인. 같은 텍스트가 여러 번 나오면 첫 번째만 쓴다.
-  const wordIndex: Record<string, Map<string, string>> = {}
-  // "courseId|bookId|lessonIdx" → chapterId
-  const chapterIndex = new Map<string, string>()
-  // bookId → chapterId[]  (진도 전개용)
-  const chaptersOf = new Map<string, string[]>()
-
-  for (const [courseId, books] of Object.entries(byCourse)) {
-    const map = new Map<string, string>()
-    for (const book of books) {
-      const ids: string[] = []
-      book.lessons.forEach((lesson, li) => {
-        ids.push(lesson.id)
-        chapterIndex.set(`${courseId}|${book.id}|${li}`, lesson.id)
-        for (const section of lesson.sections) {
-          for (const w of section.words) if (w.text && !map.has(w.text)) map.set(w.text, w.id)
+  for (const book of allBooks) {
+    const ids: string[] = []
+    book.lessons.forEach((lesson, li) => {
+      ids.push(lesson.id)
+      chapterIndex.set(`${book.lang}|${book.id}|${li}`, lesson.id)
+      for (const section of lesson.sections) {
+        for (const w of section.words) {
+          const key = `${book.lang}|${w.text}`
+          if (w.text && !wordIndex.has(key)) wordIndex.set(key, w.id)
         }
-      })
-      chaptersOf.set(book.id, ids)
-    }
-    wordIndex[courseId] = map
+      }
+    })
+    chaptersOf.set(book.id, ids)
   }
 
-  // ── 2. 상태(SRS / 진도) 변환 ───────────────────────────
-  if (state !== null) {
-    const oldSrs = (state.srs ?? {}) as Record<string, SrsEntry>
+  // 상태: SRS 키 재작성 + completed 전개
+  if (store.state !== null) {
+    const oldSrs = (store.state.srs ?? {}) as Record<string, SrsEntry>
     const newSrs: Record<string, SrsEntry> = {}
     for (const [key, entry] of Object.entries(oldSrs)) {
       const parsed = parseSrsKey(key)
-      const itemId = parsed ? wordIndex[parsed.courseId]?.get(parsed.text) : undefined
+      const itemId = parsed ? wordIndex.get(`${parsed.courseId}|${parsed.text}`) : undefined
       if (itemId && !newSrs[itemId]) {
         newSrs[itemId] = entry
         report.srsMatched++
@@ -170,8 +144,11 @@ export function migrateV1toV2(builtinByCourse: Record<string, Unit[]>): Migratio
       )
     }
 
-    const progress: Record<string, ChapterProgress> = { ...(state.progress ?? {}) }
-    for (const [bookId, doneCount] of Object.entries(state.completed ?? {})) {
+    const progress: Record<string, ChapterProgress> = {
+      ...((store.state.progress ?? {}) as Record<string, ChapterProgress>),
+    }
+    const completed = (store.state.completed ?? {}) as Record<string, number>
+    for (const [bookId, doneCount] of Object.entries(completed)) {
       const ids = chaptersOf.get(bookId)
       if (!ids) continue
       for (let i = 0; i < Math.min(doneCount, ids.length); i++) {
@@ -181,18 +158,15 @@ export function migrateV1toV2(builtinByCourse: Record<string, Unit[]>): Migratio
         }
       }
     }
-
-    const next = { ...state, srs: newSrs, progress, schemaVersion: SCHEMA_VERSION }
-    delete (next as { completed?: unknown }).completed
-    localStorage.setItem(STATE_KEY, JSON.stringify(next))
-  } else {
-    localStorage.setItem(STATE_KEY, JSON.stringify({ schemaVersion: SCHEMA_VERSION }))
+    store.state.srs = newSrs
+    store.state.progress = progress
+    delete store.state.completed
   }
 
-  // ── 3. 학습 기록 키 재작성 ─────────────────────────────
-  if (logsRaw !== null) {
+  // 학습 기록: 키를 챕터 id로
+  if (store.logs !== null) {
     const rekeyed: Record<string, unknown[]> = {}
-    for (const [key, entries] of Object.entries(logsRaw)) {
+    for (const [key, entries] of Object.entries(store.logs)) {
       if (!Array.isArray(entries) || entries.length === 0) continue
       const parsed = parseLogKey(key)
       const chapterId = parsed ? chapterIndex.get(key) : undefined
@@ -211,14 +185,86 @@ export function migrateV1toV2(builtinByCourse: Record<string, Unit[]>): Migratio
         `학습 기록 ${report.logsDropped}건은 해당 챕터를 찾지 못했어요. 지우지 않고 백업(zip)에 그대로 남습니다.`
       )
     }
-    localStorage.setItem(LOG_KEY, JSON.stringify(rekeyed))
+    store.logs = rekeyed
   }
+}
+
+// ── v2 → v3 ─────────────────────────────────────────────
+
+function stepV2toV3(store: Store, report: MigrationReport) {
+  // 내 책: Record<언어, 책[]> → 책[] (각 책이 lang을 갖는다)
+  const byLang = store.books as Record<string, RawUnit[]> | null
+  if (byLang !== null && !Array.isArray(byLang) && typeof byLang === 'object') {
+    const flat: Unit[] = []
+    for (const [lang, list] of Object.entries(byLang)) {
+      if (!Array.isArray(list)) continue
+      for (const raw of list) {
+        const id = raw.id || `${lang}-book-${flat.length}`
+        flat.push(normalizeBook({ ...raw, lang: raw.lang || lang || langOf(raw, id) }, id))
+      }
+    }
+    store.books = flat
+    if (report.booksNormalized === 0) report.booksNormalized = flat.length
+  }
+
+  // 상태: courseId → lang
+  if (store.state !== null) {
+    const courseId = store.state.courseId
+    if (typeof courseId === 'string' && !store.state.lang) store.state.lang = courseId
+    delete store.state.courseId
+  }
+}
+
+// ── 진입점 ──────────────────────────────────────────────
+
+/**
+ * 저장된 데이터를 최신 스키마까지 올린다. 이미 최신이면 아무것도 하지 않는다(멱등).
+ * @param builtin 내장 책 (이미 정규화된 상태)
+ */
+export function migrate(builtin: Unit[]): MigrationReport {
+  const report = emptyReport()
+
+  const store: Store = {
+    state: readJson<Record<string, unknown>>(STATE_KEY),
+    books: readJson<unknown>(BOOKS_KEY),
+    logs: readJson<Record<string, unknown[]>>(LOG_KEY),
+  }
+
+  // 저장된 게 아무것도 없으면 새 설치 — 할 일 없음
+  if (store.state === null && store.books === null && store.logs === null) return report
+
+  const from = Number(store.state?.schemaVersion ?? 1)
+  if (from >= SCHEMA_VERSION) return report
+
+  report.ran = true
+  report.from = from
+
+  // 원본 스냅샷 (첫 마이그레이션에서만 — 덮어쓰면 진짜 원본을 잃는다)
+  for (const key of [STATE_KEY, BOOKS_KEY, LOG_KEY]) {
+    const raw = localStorage.getItem(key)
+    if (raw !== null && localStorage.getItem(key + BACKUP_SUFFIX) === null) {
+      try {
+        localStorage.setItem(key + BACKUP_SUFFIX, raw)
+      } catch {
+        report.notes.push('원본 스냅샷 저장 실패 (localStorage 용량 부족) — 변환은 계속합니다.')
+      }
+    }
+  }
+
+  if (from < 2) stepV1toV2(store, builtin, report)
+  if (from < 3) stepV2toV3(store, report)
+
+  if (store.state === null) store.state = {}
+  store.state.schemaVersion = SCHEMA_VERSION
+  localStorage.setItem(STATE_KEY, JSON.stringify(store.state))
+  if (store.books !== null) localStorage.setItem(BOOKS_KEY, JSON.stringify(store.books))
+  if (store.logs !== null) localStorage.setItem(LOG_KEY, JSON.stringify(store.logs))
 
   return report
 }
 
 /** 마이그레이션 전 스냅샷 되돌리기 (문제가 생겼을 때 수동 복구용) */
-export function rollbackV2(): boolean {
+export function rollbackMigration(): boolean {
   let restored = false
   for (const key of [STATE_KEY, BOOKS_KEY, LOG_KEY]) {
     const snapshot = localStorage.getItem(key + BACKUP_SUFFIX)

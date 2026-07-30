@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Course, Lesson, Unit } from '../types'
+import type { Lesson, Unit } from '../types'
 import { lessonAudioFiles } from '../lib/lessonModel'
 import { checkAudioFiles, playMp3 } from '../lib/audio'
 import { today } from '../lib/storage'
@@ -9,7 +9,6 @@ import RecordButton from './RecordButton'
 import Taskbar from './Taskbar'
 
 interface Props {
-  course: Course
   book: Unit
   chapter: Lesson
   isDone: boolean
@@ -19,17 +18,18 @@ interface Props {
   onEdit: () => void
 }
 
-export default function ChapterPage({ course, book, chapter, isDone, onBack, onQuiz, onMarkDone, onEdit }: Props) {
+export default function ChapterPage({ book, chapter, isDone, onBack, onQuiz, onMarkDone, onEdit }: Props) {
   const lesson = chapter
   const sections = chapter.sections
   const chapterNo = book.lessons.findIndex((l) => l.id === chapter.id) + 1
+  const lang = book.lang // 오디오·이미지 네임스페이스
   const [audioOk, setAudioOk] = useState<Set<string>>(new Set())
   const [log, setLog] = useState<LogEntry[]>([])
   const [showForm, setShowForm] = useState(false)
 
   useEffect(() => {
     const files = lessonAudioFiles(chapter)
-    if (files.length > 0) checkAudioFiles(course.id, files).then(setAudioOk)
+    if (files.length > 0) checkAudioFiles(lang, files).then(setAudioOk)
     refreshLog()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [book.id, chapter.id])
@@ -39,14 +39,14 @@ export default function ChapterPage({ course, book, chapter, isDone, onBack, onQ
   }
 
   async function saveEntry(input: { date: string; note?: string; audioBlob?: Blob; audioExt?: string; imageBlob?: Blob }) {
-    await addLogEntry(course.id, chapter.id, input)
+    await addLogEntry(lang, chapter.id, input)
     refreshLog()
     setShowForm(false)
   }
 
   const Speaker = ({ file, label }: { file?: string; label?: string }) =>
     file && audioOk.has(file) ? (
-      <button className="spk" onClick={() => playMp3(course.id, file)} title={label}>🔊</button>
+      <button className="spk" onClick={() => playMp3(lang, file)} title={label}>🔊</button>
     ) : (
       <span className="spk off">·</span>
     )
@@ -63,7 +63,7 @@ export default function ChapterPage({ course, book, chapter, isDone, onBack, onQ
           </div>
           <div className="url-bar">
             <span className="url-back" onClick={onBack}>‹</span>
-            <span className="url-text">shelf://{course.id}/{book.id}/{chapterNo}</span>
+            <span className="url-text">shelf://{book.lang}/{book.id}/{chapterNo}</span>
             <button className="url-edit" onClick={onEdit}>✏️ 편집</button>
           </div>
 
@@ -78,7 +78,7 @@ export default function ChapterPage({ course, book, chapter, isDone, onBack, onQ
                 {(section.images ?? []).length > 0 && (
                   <div className="img-gallery">
                     {section.images!.map((img, i) => (
-                      <ImageThumb key={i} ns={course.id} file={img} className="gallery-thumb" />
+                      <ImageThumb key={i} ns={lang} file={img} className="gallery-thumb" />
                     ))}
                   </div>
                 )}
@@ -88,7 +88,7 @@ export default function ChapterPage({ course, book, chapter, isDone, onBack, onQ
                     <div className="content-kind">
                       📖 본문
                       {section.passageAudio && audioOk.has(section.passageAudio) && (
-                        <button className="spk inline" onClick={() => playMp3(course.id, section.passageAudio!)}>🔊 전체 듣기</button>
+                        <button className="spk inline" onClick={() => playMp3(lang, section.passageAudio!)}>🔊 전체 듣기</button>
                       )}
                     </div>
                     <p className="passage-text">{section.passageText}</p>
@@ -163,7 +163,7 @@ export default function ChapterPage({ course, book, chapter, isDone, onBack, onQ
               <button className="pill soft" onClick={() => setShowForm((v) => !v)}>{showForm ? '접기' : '＋ 오늘 기록 추가'}</button>
             </div>
 
-            {showForm && <LogForm courseId={course.id} onSave={saveEntry} />}
+            {showForm && <LogForm onSave={saveEntry} />}
 
             <div className="log-timeline">
               {log.length === 0 && <p className="log-empty">아직 기록이 없어요. 녹음하거나 필기 사진을 남겨보세요 🌸</p>}
@@ -174,9 +174,9 @@ export default function ChapterPage({ course, book, chapter, isDone, onBack, onQ
                     <button className="mini-del" onClick={() => { deleteLogEntry(chapter.id, entry.id); refreshLog() }}>🗑</button>
                   </div>
                   {entry.audioFile && (
-                    <button className="pill soft" onClick={() => playMp3(logNamespace(course.id), entry.audioFile!)}>🔊 내 녹음 듣기</button>
+                    <button className="pill soft" onClick={() => playMp3(logNamespace(lang), entry.audioFile!)}>🔊 내 녹음 듣기</button>
                   )}
-                  {entry.imageFile && <ImageThumb ns={logNamespace(course.id)} file={entry.imageFile} className="log-image" />}
+                  {entry.imageFile && <ImageThumb ns={logNamespace(lang)} file={entry.imageFile} className="log-image" />}
                   {entry.note && <p className="log-note">{entry.note}</p>}
                 </div>
               ))}
@@ -190,10 +190,8 @@ export default function ChapterPage({ course, book, chapter, isDone, onBack, onQ
 }
 
 function LogForm({
-  courseId,
   onSave,
 }: {
-  courseId: string
   onSave: (input: { date: string; note?: string; audioBlob?: Blob; audioExt?: string; imageBlob?: Blob }) => void
 }) {
   const [date, setDate] = useState(today())
