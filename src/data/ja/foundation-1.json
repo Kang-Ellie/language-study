@@ -5,59 +5,275 @@
   "track": "foundation",
   "lessons": [
     {
+      "id": "ja-foundation-1/c1",
+      "order": 0,
       "title": "인사하기",
       "context": "아침, 낮, 저녁 인사",
-      "words": [
-        { "text": "こんにちは", "meaning": "안녕하세요 (낮)" },
-        { "text": "おはよう", "meaning": "안녕 (아침)" },
-        { "text": "こんばんは", "meaning": "안녕하세요 (저녁)" },
-        { "text": "さようなら", "meaning": "안녕히 가세요" },
-        { "text": "ありがとう", "meaning": "고마워요" },
-        { "text": "すみません", "meaning": "실례해요, 미안해요" },
-        { "text": "はい", "meaning": "네" },
-        { "text": "いいえ", "meaning": "아니요" }
-      ],
-      "sentences": [
-        { "text": "こんにちは！", "meaning": "안녕하세요!", "tokens": ["こんにちは"] },
-        { "text": "ありがとう ございます。", "meaning": "감사합니다", "tokens": ["ありがとう", "ございます"] },
-        { "text": "おはよう ございます。", "meaning": "안녕하세요 (아침 인사)", "tokens": ["おはよう", "ございます"] }
+      "sections": [
+        {
+          "id": "ja-foundation-1/c1/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "ja-foundation-1/c1/s1/p1",
+              "text": "こんにちは！",
+              "meaning": "안녕하세요!",
+              "tokens": [
+                "こんにちは"
+              ]
+            },
+            {
+              "id": "ja-foundation-1/c1/s1/p2",
+              "text": "ありがとう ございます。",
+              "meaning": "감사합니다",
+              "tokens": [
+                "ありがとう",
+                "ございます"
+              ]
+            },
+            {
+              "id": "ja-foundation-1/c1/s1/p3",
+              "text": "おはよう ございます。",
+              "meaning": "안녕하세요 (아침 인사)",
+              "tokens": [
+                "おはよう",
+                "ございます"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "ja-foundation-1/c1/s1/w1",
+              "text": "こんにちは",
+              "meaning": "안녕하세요 (낮)"
+            },
+            {
+              "id": "ja-foundation-1/c1/s1/w2",
+              "text": "おはよう",
+              "meaning": "안녕 (아침)"
+            },
+            {
+              "id": "ja-foundation-1/c1/s1/w3",
+              "text": "こんばんは",
+              "meaning": "안녕하세요 (저녁)"
+            },
+            {
+              "id": "ja-foundation-1/c1/s1/w4",
+              "text": "さようなら",
+              "meaning": "안녕히 가세요"
+            },
+            {
+              "id": "ja-foundation-1/c1/s1/w5",
+              "text": "ありがとう",
+              "meaning": "고마워요"
+            },
+            {
+              "id": "ja-foundation-1/c1/s1/w6",
+              "text": "すみません",
+              "meaning": "실례해요, 미안해요"
+            },
+            {
+              "id": "ja-foundation-1/c1/s1/w7",
+              "text": "はい",
+              "meaning": "네"
+            },
+            {
+              "id": "ja-foundation-1/c1/s1/w8",
+              "text": "いいえ",
+              "meaning": "아니요"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "ja-foundation-1/c2",
+      "order": 1,
       "title": "です 문형",
       "context": "「A는 B예요」 말하기",
-      "words": [
-        { "text": "私", "reading": "わたし", "meaning": "저, 나" },
-        { "text": "あなた", "meaning": "당신" },
-        { "text": "学生", "reading": "がくせい", "meaning": "학생" },
-        { "text": "先生", "reading": "せんせい", "meaning": "선생님" },
-        { "text": "韓国人", "reading": "かんこくじん", "meaning": "한국인" },
-        { "text": "日本人", "reading": "にほんじん", "meaning": "일본인" },
-        { "text": "友達", "reading": "ともだち", "meaning": "친구" }
-      ],
-      "sentences": [
-        { "text": "私は 学生 です。", "reading": "わたしは がくせい です", "meaning": "저는 학생이에요", "tokens": ["私は", "学生", "です"] },
-        { "text": "あなたは 先生 ですか。", "reading": "あなたは せんせい ですか", "meaning": "당신은 선생님이에요?", "tokens": ["あなたは", "先生", "ですか"] },
-        { "text": "私は 韓国人 です。", "reading": "わたしは かんこくじん です", "meaning": "저는 한국인이에요", "tokens": ["私は", "韓国人", "です"] }
+      "sections": [
+        {
+          "id": "ja-foundation-1/c2/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "ja-foundation-1/c2/s1/p1",
+              "text": "私は 学生 です。",
+              "reading": "わたしは がくせい です",
+              "meaning": "저는 학생이에요",
+              "tokens": [
+                "私は",
+                "学生",
+                "です"
+              ]
+            },
+            {
+              "id": "ja-foundation-1/c2/s1/p2",
+              "text": "あなたは 先生 ですか。",
+              "reading": "あなたは せんせい ですか",
+              "meaning": "당신은 선생님이에요?",
+              "tokens": [
+                "あなたは",
+                "先生",
+                "ですか"
+              ]
+            },
+            {
+              "id": "ja-foundation-1/c2/s1/p3",
+              "text": "私は 韓国人 です。",
+              "reading": "わたしは かんこくじん です",
+              "meaning": "저는 한국인이에요",
+              "tokens": [
+                "私は",
+                "韓国人",
+                "です"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "ja-foundation-1/c2/s1/w1",
+              "text": "私",
+              "reading": "わたし",
+              "meaning": "저, 나"
+            },
+            {
+              "id": "ja-foundation-1/c2/s1/w2",
+              "text": "あなた",
+              "meaning": "당신"
+            },
+            {
+              "id": "ja-foundation-1/c2/s1/w3",
+              "text": "学生",
+              "reading": "がくせい",
+              "meaning": "학생"
+            },
+            {
+              "id": "ja-foundation-1/c2/s1/w4",
+              "text": "先生",
+              "reading": "せんせい",
+              "meaning": "선생님"
+            },
+            {
+              "id": "ja-foundation-1/c2/s1/w5",
+              "text": "韓国人",
+              "reading": "かんこくじん",
+              "meaning": "한국인"
+            },
+            {
+              "id": "ja-foundation-1/c2/s1/w6",
+              "text": "日本人",
+              "reading": "にほんじん",
+              "meaning": "일본인"
+            },
+            {
+              "id": "ja-foundation-1/c2/s1/w7",
+              "text": "友達",
+              "reading": "ともだち",
+              "meaning": "친구"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "ja-foundation-1/c3",
+      "order": 2,
       "title": "기본 동사 — ます",
       "context": "먹어요, 마셔요, 가요",
-      "words": [
-        { "text": "食べます", "reading": "たべます", "meaning": "먹어요" },
-        { "text": "飲みます", "reading": "のみます", "meaning": "마셔요" },
-        { "text": "行きます", "reading": "いきます", "meaning": "가요" },
-        { "text": "見ます", "reading": "みます", "meaning": "봐요" },
-        { "text": "読みます", "reading": "よみます", "meaning": "읽어요" },
-        { "text": "水", "reading": "みず", "meaning": "물" },
-        { "text": "本", "reading": "ほん", "meaning": "책" },
-        { "text": "学校", "reading": "がっこう", "meaning": "학교" }
-      ],
-      "sentences": [
-        { "text": "水を 飲みます。", "reading": "みずを のみます", "meaning": "물을 마셔요", "tokens": ["水を", "飲みます"] },
-        { "text": "本を 読みます。", "reading": "ほんを よみます", "meaning": "책을 읽어요", "tokens": ["本を", "読みます"] },
-        { "text": "学校へ 行きます。", "reading": "がっこうへ いきます", "meaning": "학교에 가요", "tokens": ["学校へ", "行きます"] }
+      "sections": [
+        {
+          "id": "ja-foundation-1/c3/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "ja-foundation-1/c3/s1/p1",
+              "text": "水を 飲みます。",
+              "reading": "みずを のみます",
+              "meaning": "물을 마셔요",
+              "tokens": [
+                "水を",
+                "飲みます"
+              ]
+            },
+            {
+              "id": "ja-foundation-1/c3/s1/p2",
+              "text": "本を 読みます。",
+              "reading": "ほんを よみます",
+              "meaning": "책을 읽어요",
+              "tokens": [
+                "本を",
+                "読みます"
+              ]
+            },
+            {
+              "id": "ja-foundation-1/c3/s1/p3",
+              "text": "学校へ 行きます。",
+              "reading": "がっこうへ いきます",
+              "meaning": "학교에 가요",
+              "tokens": [
+                "学校へ",
+                "行きます"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "ja-foundation-1/c3/s1/w1",
+              "text": "食べます",
+              "reading": "たべます",
+              "meaning": "먹어요"
+            },
+            {
+              "id": "ja-foundation-1/c3/s1/w2",
+              "text": "飲みます",
+              "reading": "のみます",
+              "meaning": "마셔요"
+            },
+            {
+              "id": "ja-foundation-1/c3/s1/w3",
+              "text": "行きます",
+              "reading": "いきます",
+              "meaning": "가요"
+            },
+            {
+              "id": "ja-foundation-1/c3/s1/w4",
+              "text": "見ます",
+              "reading": "みます",
+              "meaning": "봐요"
+            },
+            {
+              "id": "ja-foundation-1/c3/s1/w5",
+              "text": "読みます",
+              "reading": "よみます",
+              "meaning": "읽어요"
+            },
+            {
+              "id": "ja-foundation-1/c3/s1/w6",
+              "text": "水",
+              "reading": "みず",
+              "meaning": "물"
+            },
+            {
+              "id": "ja-foundation-1/c3/s1/w7",
+              "text": "本",
+              "reading": "ほん",
+              "meaning": "책"
+            },
+            {
+              "id": "ja-foundation-1/c3/s1/w8",
+              "text": "学校",
+              "reading": "がっこう",
+              "meaning": "학교"
+            }
+          ],
+          "grammar": []
+        }
       ]
     }
   ]

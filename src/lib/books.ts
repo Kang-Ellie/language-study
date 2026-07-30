@@ -1,14 +1,24 @@
 // 책 관리 — 내장 책(JSON) + 사용자가 앱에서 만든/수정한 책(localStorage)
 // 같은 id의 책을 저장하면 내장 책을 덮어씁니다(원본 파일은 그대로).
+//
+// 저장소에서 읽어 들이는 모든 책은 normalizeBook()을 통과한다. 그래서 이 모듈 밖으로
+// 나가는 Unit은 항상 id가 완비된 정규 스키마다.
 import { courses as builtinCourses } from '../data'
 import type { Course, Unit } from '../types'
+import { normalizeBook, type RawUnit } from './normalize'
 
 export const BOOKS_KEY = 'language-study-books-v1'
 type CustomBooks = Record<string, Unit[]> // courseId → 책 목록
 
 export function loadCustomBooks(): CustomBooks {
   try {
-    return JSON.parse(localStorage.getItem(BOOKS_KEY) || '{}')
+    const raw = JSON.parse(localStorage.getItem(BOOKS_KEY) || '{}') as Record<string, RawUnit[]>
+    const out: CustomBooks = {}
+    for (const [courseId, list] of Object.entries(raw)) {
+      if (!Array.isArray(list)) continue
+      out[courseId] = list.map((u, i) => normalizeBook(u, u.id || `${courseId}-book-${i}`))
+    }
+    return out
   } catch {
     return {}
   }
@@ -42,9 +52,10 @@ export function isCustomBook(courseId: string, bookId: string): boolean {
 export function upsertBook(courseId: string, book: Unit) {
   const all = loadCustomBooks()
   const list = all[courseId] ?? []
-  const idx = list.findIndex((u) => u.id === book.id)
-  if (idx >= 0) list[idx] = book
-  else list.push(book)
+  const normalized = normalizeBook({ ...book, updatedAt: new Date().toISOString() }, book.id)
+  const idx = list.findIndex((u) => u.id === normalized.id)
+  if (idx >= 0) list[idx] = normalized
+  else list.push(normalized)
   all[courseId] = list
   saveCustomBooks(all)
 }
@@ -60,9 +71,12 @@ export function newBookId(courseId: string): string {
   return `${courseId}-book-${Date.now()}`
 }
 
-/** JSON 붙여넣기 검증 — 성공하면 Unit, 실패하면 에러 메시지 */
-export function parseBookJson(raw: string): Unit | string {
-  let data: any
+/**
+ * JSON 붙여넣기 검증 — 성공하면 정규화된 Unit, 실패하면 에러 메시지.
+ * id는 없어도 된다 (normalizeBook이 채운다).
+ */
+export function parseBookJson(raw: string, fallbackId: string): Unit | string {
+  let data: RawUnit
   try {
     data = JSON.parse(raw)
   } catch {
@@ -72,36 +86,22 @@ export function parseBookJson(raw: string): Unit | string {
   if (!data.title) return '"title" (책 제목)이 필요해요.'
   if (!Array.isArray(data.lessons) || data.lessons.length === 0)
     return '"lessons" 배열에 챕터가 최소 1개 필요해요.'
+
   for (const [i, l] of data.lessons.entries()) {
     if (!l.title) return `${i + 1}번째 챕터에 "title"이 없어요.`
-    // 신규 구조(sections) 또는 평면 구조(words/sentences) 모두 허용
-    if (Array.isArray(l.sections)) {
-      for (const sec of l.sections) {
-        if (!Array.isArray(sec.passages)) sec.passages = []
-        if (!Array.isArray(sec.words)) sec.words = []
-        if (!Array.isArray(sec.grammar)) sec.grammar = []
-        for (const w of sec.words)
-          if (!w.text || !w.meaning) return `챕터 "${l.title}"의 새단어에 text/meaning이 빠졌어요.`
-        for (const s of sec.passages)
-          if (!s.text) return `챕터 "${l.title}"의 본문 문장에 text가 빠졌어요.` // meaning은 선택
-        for (const g of sec.grammar) if (!Array.isArray(g.examples)) g.examples = []
-      }
-    } else {
-      if (!Array.isArray(l.words)) l.words = []
-      if (!Array.isArray(l.sentences)) l.sentences = []
-      for (const w of l.words)
-        if (!w.text || !w.meaning) return `챕터 "${l.title}"의 단어에 text/meaning이 빠졌어요.`
-      for (const s of l.sentences)
-        if (!s.text) return `챕터 "${l.title}"의 문장에 text가 빠졌어요.` // meaning은 선택
+    // 신규 구조(sections)와 평면 구조(words/sentences) 모두 받는다 — normalizeBook이 통일한다
+    const sections = Array.isArray(l.sections) && l.sections.length > 0
+      ? l.sections
+      : [{ words: l.words ?? [], passages: l.sentences ?? [], grammar: [] }]
+    for (const sec of sections) {
+      for (const w of sec.words ?? [])
+        if (!w.text || !w.meaning) return `챕터 "${l.title}"의 새단어에 text/meaning이 빠졌어요.`
+      for (const s of sec.passages ?? [])
+        if (!s.text) return `챕터 "${l.title}"의 본문 문장에 text가 빠졌어요.` // meaning은 선택
+      for (const g of sec.grammar ?? [])
+        for (const e of g.examples ?? [])
+          if (!e.text) return `챕터 "${l.title}"의 문법 예문에 text가 빠졌어요.`
     }
   }
-  return {
-    id: typeof data.id === 'string' && data.id ? data.id : '',
-    title: data.title,
-    emoji: data.emoji || '📕',
-    track: data.track === 'foundation' ? 'foundation' : data.track === 'vocab' ? 'vocab' : 'media',
-    sourceType: data.sourceType,
-    sourceTitle: data.sourceTitle,
-    lessons: data.lessons,
-  } as Unit
+  return normalizeBook(data, fallbackId)
 }

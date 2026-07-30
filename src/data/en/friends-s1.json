@@ -7,40 +7,144 @@
   "sourceTitle": "Friends Season 1",
   "lessons": [
     {
+      "id": "en-friends-s1/c1",
+      "order": 0,
       "title": "센트럴 퍼크에서",
       "context": "친구들의 수다",
-      "words": [
-        { "text": "date", "meaning": "데이트" },
-        { "text": "roommate", "meaning": "룸메이트" },
-        { "text": "funny", "meaning": "웃긴" },
-        { "text": "job", "meaning": "직장, 일" },
-        { "text": "new", "meaning": "새로운" },
-        { "text": "need", "meaning": "필요하다" },
-        { "text": "again", "meaning": "다시" }
-      ],
-      "sentences": [
-        { "text": "How was your date?", "meaning": "데이트 어땠어?" },
-        { "text": "He is so funny.", "meaning": "걔 정말 웃겨" },
-        { "text": "I need a new job.", "meaning": "나 새 직장이 필요해" }
+      "sections": [
+        {
+          "id": "en-friends-s1/c1/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "en-friends-s1/c1/s1/p1",
+              "text": "How was your date?",
+              "meaning": "데이트 어땠어?"
+            },
+            {
+              "id": "en-friends-s1/c1/s1/p2",
+              "text": "He is so funny.",
+              "meaning": "걔 정말 웃겨"
+            },
+            {
+              "id": "en-friends-s1/c1/s1/p3",
+              "text": "I need a new job.",
+              "meaning": "나 새 직장이 필요해"
+            }
+          ],
+          "words": [
+            {
+              "id": "en-friends-s1/c1/s1/w1",
+              "text": "date",
+              "meaning": "데이트"
+            },
+            {
+              "id": "en-friends-s1/c1/s1/w2",
+              "text": "roommate",
+              "meaning": "룸메이트"
+            },
+            {
+              "id": "en-friends-s1/c1/s1/w3",
+              "text": "funny",
+              "meaning": "웃긴"
+            },
+            {
+              "id": "en-friends-s1/c1/s1/w4",
+              "text": "job",
+              "meaning": "직장, 일"
+            },
+            {
+              "id": "en-friends-s1/c1/s1/w5",
+              "text": "new",
+              "meaning": "새로운"
+            },
+            {
+              "id": "en-friends-s1/c1/s1/w6",
+              "text": "need",
+              "meaning": "필요하다"
+            },
+            {
+              "id": "en-friends-s1/c1/s1/w7",
+              "text": "again",
+              "meaning": "다시"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "en-friends-s1/c2",
+      "order": 1,
       "title": "우리 얘기 좀 해",
       "context": "로스와 레이첼",
-      "words": [
-        { "text": "talk", "meaning": "이야기하다" },
-        { "text": "listen", "meaning": "듣다" },
-        { "text": "crazy", "meaning": "말도 안 되는" },
-        { "text": "break", "meaning": "휴식, 잠깐 쉼" },
-        { "text": "moment", "meaning": "순간, 잠깐" },
-        { "text": "actually", "meaning": "사실은" },
-        { "text": "maybe", "meaning": "어쩌면" },
-        { "text": "right", "meaning": "맞는, 옳은" }
-      ],
-      "sentences": [
-        { "text": "We were on a break!", "meaning": "우리 그때 잠깐 쉬는 중이었잖아!" },
-        { "text": "Can we talk for a moment?", "meaning": "우리 잠깐 얘기할 수 있을까?" },
-        { "text": "Actually, maybe you are right.", "meaning": "사실 어쩌면 네 말이 맞아" }
+      "sections": [
+        {
+          "id": "en-friends-s1/c2/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "en-friends-s1/c2/s1/p1",
+              "text": "We were on a break!",
+              "meaning": "우리 그때 잠깐 쉬는 중이었잖아!"
+            },
+            {
+              "id": "en-friends-s1/c2/s1/p2",
+              "text": "Can we talk for a moment?",
+              "meaning": "우리 잠깐 얘기할 수 있을까?"
+            },
+            {
+              "id": "en-friends-s1/c2/s1/p3",
+              "text": "Actually, maybe you are right.",
+              "meaning": "사실 어쩌면 네 말이 맞아"
+            }
+          ],
+          "words": [
+            {
+              "id": "en-friends-s1/c2/s1/w1",
+              "text": "talk",
+              "meaning": "이야기하다"
+            },
+            {
+              "id": "en-friends-s1/c2/s1/w2",
+              "text": "listen",
+              "meaning": "듣다"
+            },
+            {
+              "id": "en-friends-s1/c2/s1/w3",
+              "text": "crazy",
+              "meaning": "말도 안 되는"
+            },
+            {
+              "id": "en-friends-s1/c2/s1/w4",
+              "text": "break",
+              "meaning": "휴식, 잠깐 쉼"
+            },
+            {
+              "id": "en-friends-s1/c2/s1/w5",
+              "text": "moment",
+              "meaning": "순간, 잠깐"
+            },
+            {
+              "id": "en-friends-s1/c2/s1/w6",
+              "text": "actually",
+              "meaning": "사실은"
+            },
+            {
+              "id": "en-friends-s1/c2/s1/w7",
+              "text": "maybe",
+              "meaning": "어쩌면"
+            },
+            {
+              "id": "en-friends-s1/c2/s1/w8",
+              "text": "right",
+              "meaning": "맞는, 옳은"
+            }
+          ],
+          "grammar": []
+        }
       ]
     }
   ]

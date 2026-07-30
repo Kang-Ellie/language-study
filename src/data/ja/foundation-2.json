@@ -5,60 +5,295 @@
   "track": "foundation",
   "lessons": [
     {
+      "id": "ja-foundation-2/c1",
+      "order": 0,
       "title": "숫자 1~10",
       "context": "いち、に、さん",
-      "words": [
-        { "text": "一", "reading": "いち", "meaning": "1, 하나" },
-        { "text": "二", "reading": "に", "meaning": "2, 둘" },
-        { "text": "三", "reading": "さん", "meaning": "3, 셋" },
-        { "text": "四", "reading": "よん", "meaning": "4, 넷" },
-        { "text": "五", "reading": "ご", "meaning": "5, 다섯" },
-        { "text": "六", "reading": "ろく", "meaning": "6, 여섯" },
-        { "text": "七", "reading": "なな", "meaning": "7, 일곱" },
-        { "text": "八", "reading": "はち", "meaning": "8, 여덟" },
-        { "text": "九", "reading": "きゅう", "meaning": "9, 아홉" },
-        { "text": "十", "reading": "じゅう", "meaning": "10, 열" }
-      ],
-      "sentences": [
-        { "text": "一、二、三！", "reading": "いち、に、さん", "meaning": "하나 둘 셋!", "tokens": ["一", "二", "三"] },
-        { "text": "四、五、六、七。", "reading": "よん、ご、ろく、なな", "meaning": "넷 다섯 여섯 일곱", "tokens": ["四", "五", "六", "七"] }
+      "sections": [
+        {
+          "id": "ja-foundation-2/c1/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "ja-foundation-2/c1/s1/p1",
+              "text": "一、二、三！",
+              "reading": "いち、に、さん",
+              "meaning": "하나 둘 셋!",
+              "tokens": [
+                "一",
+                "二",
+                "三"
+              ]
+            },
+            {
+              "id": "ja-foundation-2/c1/s1/p2",
+              "text": "四、五、六、七。",
+              "reading": "よん、ご、ろく、なな",
+              "meaning": "넷 다섯 여섯 일곱",
+              "tokens": [
+                "四",
+                "五",
+                "六",
+                "七"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "ja-foundation-2/c1/s1/w1",
+              "text": "一",
+              "reading": "いち",
+              "meaning": "1, 하나"
+            },
+            {
+              "id": "ja-foundation-2/c1/s1/w2",
+              "text": "二",
+              "reading": "に",
+              "meaning": "2, 둘"
+            },
+            {
+              "id": "ja-foundation-2/c1/s1/w3",
+              "text": "三",
+              "reading": "さん",
+              "meaning": "3, 셋"
+            },
+            {
+              "id": "ja-foundation-2/c1/s1/w4",
+              "text": "四",
+              "reading": "よん",
+              "meaning": "4, 넷"
+            },
+            {
+              "id": "ja-foundation-2/c1/s1/w5",
+              "text": "五",
+              "reading": "ご",
+              "meaning": "5, 다섯"
+            },
+            {
+              "id": "ja-foundation-2/c1/s1/w6",
+              "text": "六",
+              "reading": "ろく",
+              "meaning": "6, 여섯"
+            },
+            {
+              "id": "ja-foundation-2/c1/s1/w7",
+              "text": "七",
+              "reading": "なな",
+              "meaning": "7, 일곱"
+            },
+            {
+              "id": "ja-foundation-2/c1/s1/w8",
+              "text": "八",
+              "reading": "はち",
+              "meaning": "8, 여덟"
+            },
+            {
+              "id": "ja-foundation-2/c1/s1/w9",
+              "text": "九",
+              "reading": "きゅう",
+              "meaning": "9, 아홉"
+            },
+            {
+              "id": "ja-foundation-2/c1/s1/w10",
+              "text": "十",
+              "reading": "じゅう",
+              "meaning": "10, 열"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "ja-foundation-2/c2",
+      "order": 1,
       "title": "시간 표현",
       "context": "지금 몇 시?",
-      "words": [
-        { "text": "今", "reading": "いま", "meaning": "지금" },
-        { "text": "今日", "reading": "きょう", "meaning": "오늘" },
-        { "text": "明日", "reading": "あした", "meaning": "내일" },
-        { "text": "昨日", "reading": "きのう", "meaning": "어제" },
-        { "text": "朝", "reading": "あさ", "meaning": "아침" },
-        { "text": "夜", "reading": "よる", "meaning": "밤" },
-        { "text": "何時", "reading": "なんじ", "meaning": "몇 시" },
-        { "text": "忙しい", "reading": "いそがしい", "meaning": "바쁘다" }
-      ],
-      "sentences": [
-        { "text": "今 何時 ですか。", "reading": "いま なんじ ですか", "meaning": "지금 몇 시예요?", "tokens": ["今", "何時", "ですか"] },
-        { "text": "明日 学校へ 行きます。", "reading": "あした がっこうへ いきます", "meaning": "내일 학교에 가요", "tokens": ["明日", "学校へ", "行きます"] },
-        { "text": "今日は 忙しい です。", "reading": "きょうは いそがしい です", "meaning": "오늘은 바빠요", "tokens": ["今日は", "忙しい", "です"] }
+      "sections": [
+        {
+          "id": "ja-foundation-2/c2/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "ja-foundation-2/c2/s1/p1",
+              "text": "今 何時 ですか。",
+              "reading": "いま なんじ ですか",
+              "meaning": "지금 몇 시예요?",
+              "tokens": [
+                "今",
+                "何時",
+                "ですか"
+              ]
+            },
+            {
+              "id": "ja-foundation-2/c2/s1/p2",
+              "text": "明日 学校へ 行きます。",
+              "reading": "あした がっこうへ いきます",
+              "meaning": "내일 학교에 가요",
+              "tokens": [
+                "明日",
+                "学校へ",
+                "行きます"
+              ]
+            },
+            {
+              "id": "ja-foundation-2/c2/s1/p3",
+              "text": "今日は 忙しい です。",
+              "reading": "きょうは いそがしい です",
+              "meaning": "오늘은 바빠요",
+              "tokens": [
+                "今日は",
+                "忙しい",
+                "です"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "ja-foundation-2/c2/s1/w1",
+              "text": "今",
+              "reading": "いま",
+              "meaning": "지금"
+            },
+            {
+              "id": "ja-foundation-2/c2/s1/w2",
+              "text": "今日",
+              "reading": "きょう",
+              "meaning": "오늘"
+            },
+            {
+              "id": "ja-foundation-2/c2/s1/w3",
+              "text": "明日",
+              "reading": "あした",
+              "meaning": "내일"
+            },
+            {
+              "id": "ja-foundation-2/c2/s1/w4",
+              "text": "昨日",
+              "reading": "きのう",
+              "meaning": "어제"
+            },
+            {
+              "id": "ja-foundation-2/c2/s1/w5",
+              "text": "朝",
+              "reading": "あさ",
+              "meaning": "아침"
+            },
+            {
+              "id": "ja-foundation-2/c2/s1/w6",
+              "text": "夜",
+              "reading": "よる",
+              "meaning": "밤"
+            },
+            {
+              "id": "ja-foundation-2/c2/s1/w7",
+              "text": "何時",
+              "reading": "なんじ",
+              "meaning": "몇 시"
+            },
+            {
+              "id": "ja-foundation-2/c2/s1/w8",
+              "text": "忙しい",
+              "reading": "いそがしい",
+              "meaning": "바쁘다"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "ja-foundation-2/c3",
+      "order": 2,
       "title": "지시어와 조사",
       "context": "これ・それ・あれ",
-      "words": [
-        { "text": "これ", "meaning": "이것" },
-        { "text": "それ", "meaning": "그것" },
-        { "text": "あれ", "meaning": "저것" },
-        { "text": "何", "reading": "なに", "meaning": "무엇" },
-        { "text": "好き", "reading": "すき", "meaning": "좋아함" },
-        { "text": "猫", "reading": "ねこ", "meaning": "고양이" },
-        { "text": "犬", "reading": "いぬ", "meaning": "개" }
-      ],
-      "sentences": [
-        { "text": "これは 何 ですか。", "reading": "これは なん ですか", "meaning": "이것은 뭐예요?", "tokens": ["これは", "何", "ですか"] },
-        { "text": "私は 猫が 好き です。", "reading": "わたしは ねこが すき です", "meaning": "저는 고양이를 좋아해요", "tokens": ["私は", "猫が", "好き", "です"] },
-        { "text": "それは 私の 本 です。", "reading": "それは わたしの ほん です", "meaning": "그것은 제 책이에요", "tokens": ["それは", "私の", "本", "です"] }
+      "sections": [
+        {
+          "id": "ja-foundation-2/c3/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "ja-foundation-2/c3/s1/p1",
+              "text": "これは 何 ですか。",
+              "reading": "これは なん ですか",
+              "meaning": "이것은 뭐예요?",
+              "tokens": [
+                "これは",
+                "何",
+                "ですか"
+              ]
+            },
+            {
+              "id": "ja-foundation-2/c3/s1/p2",
+              "text": "私は 猫が 好き です。",
+              "reading": "わたしは ねこが すき です",
+              "meaning": "저는 고양이를 좋아해요",
+              "tokens": [
+                "私は",
+                "猫が",
+                "好き",
+                "です"
+              ]
+            },
+            {
+              "id": "ja-foundation-2/c3/s1/p3",
+              "text": "それは 私の 本 です。",
+              "reading": "それは わたしの ほん です",
+              "meaning": "그것은 제 책이에요",
+              "tokens": [
+                "それは",
+                "私の",
+                "本",
+                "です"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "ja-foundation-2/c3/s1/w1",
+              "text": "これ",
+              "meaning": "이것"
+            },
+            {
+              "id": "ja-foundation-2/c3/s1/w2",
+              "text": "それ",
+              "meaning": "그것"
+            },
+            {
+              "id": "ja-foundation-2/c3/s1/w3",
+              "text": "あれ",
+              "meaning": "저것"
+            },
+            {
+              "id": "ja-foundation-2/c3/s1/w4",
+              "text": "何",
+              "reading": "なに",
+              "meaning": "무엇"
+            },
+            {
+              "id": "ja-foundation-2/c3/s1/w5",
+              "text": "好き",
+              "reading": "すき",
+              "meaning": "좋아함"
+            },
+            {
+              "id": "ja-foundation-2/c3/s1/w6",
+              "text": "猫",
+              "reading": "ねこ",
+              "meaning": "고양이"
+            },
+            {
+              "id": "ja-foundation-2/c3/s1/w7",
+              "text": "犬",
+              "reading": "いぬ",
+              "meaning": "개"
+            }
+          ],
+          "grammar": []
+        }
       ]
     }
   ]

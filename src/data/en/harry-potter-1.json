@@ -7,41 +7,149 @@
   "sourceTitle": "Harry Potter and the Philosopher's Stone",
   "lessons": [
     {
+      "id": "en-harry-potter-1/c1",
+      "order": 0,
       "title": "호그와트로 가는 길",
       "context": "부엉이가 가져온 편지",
-      "words": [
-        { "text": "wizard", "meaning": "마법사" },
-        { "text": "magic", "meaning": "마법" },
-        { "text": "wand", "meaning": "마법 지팡이" },
-        { "text": "owl", "meaning": "부엉이" },
-        { "text": "castle", "meaning": "성" },
-        { "text": "letter", "meaning": "편지" },
-        { "text": "school", "meaning": "학교" },
-        { "text": "bring", "meaning": "가져오다" }
-      ],
-      "sentences": [
-        { "text": "Harry is a wizard.", "meaning": "해리는 마법사예요" },
-        { "text": "The owl brings a letter.", "meaning": "부엉이가 편지를 가져와요" },
-        { "text": "Hogwarts is a magic school.", "meaning": "호그와트는 마법 학교예요" }
+      "sections": [
+        {
+          "id": "en-harry-potter-1/c1/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "en-harry-potter-1/c1/s1/p1",
+              "text": "Harry is a wizard.",
+              "meaning": "해리는 마법사예요"
+            },
+            {
+              "id": "en-harry-potter-1/c1/s1/p2",
+              "text": "The owl brings a letter.",
+              "meaning": "부엉이가 편지를 가져와요"
+            },
+            {
+              "id": "en-harry-potter-1/c1/s1/p3",
+              "text": "Hogwarts is a magic school.",
+              "meaning": "호그와트는 마법 학교예요"
+            }
+          ],
+          "words": [
+            {
+              "id": "en-harry-potter-1/c1/s1/w1",
+              "text": "wizard",
+              "meaning": "마법사"
+            },
+            {
+              "id": "en-harry-potter-1/c1/s1/w2",
+              "text": "magic",
+              "meaning": "마법"
+            },
+            {
+              "id": "en-harry-potter-1/c1/s1/w3",
+              "text": "wand",
+              "meaning": "마법 지팡이"
+            },
+            {
+              "id": "en-harry-potter-1/c1/s1/w4",
+              "text": "owl",
+              "meaning": "부엉이"
+            },
+            {
+              "id": "en-harry-potter-1/c1/s1/w5",
+              "text": "castle",
+              "meaning": "성"
+            },
+            {
+              "id": "en-harry-potter-1/c1/s1/w6",
+              "text": "letter",
+              "meaning": "편지"
+            },
+            {
+              "id": "en-harry-potter-1/c1/s1/w7",
+              "text": "school",
+              "meaning": "학교"
+            },
+            {
+              "id": "en-harry-potter-1/c1/s1/w8",
+              "text": "bring",
+              "meaning": "가져오다"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "en-harry-potter-1/c2",
+      "order": 1,
       "title": "마법 수업",
       "context": "주문과 빗자루",
-      "words": [
-        { "text": "spell", "meaning": "주문" },
-        { "text": "potion", "meaning": "마법약" },
-        { "text": "broom", "meaning": "빗자루" },
-        { "text": "fly", "meaning": "날다" },
-        { "text": "brave", "meaning": "용감한" },
-        { "text": "dark", "meaning": "어두운" },
-        { "text": "every", "meaning": "모든" },
-        { "text": "know", "meaning": "알다" }
-      ],
-      "sentences": [
-        { "text": "Harry can fly on a broom.", "meaning": "해리는 빗자루를 타고 날 수 있어요" },
-        { "text": "Hermione knows every spell.", "meaning": "헤르미온느는 모든 주문을 알아요" },
-        { "text": "Be brave, Harry.", "meaning": "용감해져 해리" }
+      "sections": [
+        {
+          "id": "en-harry-potter-1/c2/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "en-harry-potter-1/c2/s1/p1",
+              "text": "Harry can fly on a broom.",
+              "meaning": "해리는 빗자루를 타고 날 수 있어요"
+            },
+            {
+              "id": "en-harry-potter-1/c2/s1/p2",
+              "text": "Hermione knows every spell.",
+              "meaning": "헤르미온느는 모든 주문을 알아요"
+            },
+            {
+              "id": "en-harry-potter-1/c2/s1/p3",
+              "text": "Be brave, Harry.",
+              "meaning": "용감해져 해리"
+            }
+          ],
+          "words": [
+            {
+              "id": "en-harry-potter-1/c2/s1/w1",
+              "text": "spell",
+              "meaning": "주문"
+            },
+            {
+              "id": "en-harry-potter-1/c2/s1/w2",
+              "text": "potion",
+              "meaning": "마법약"
+            },
+            {
+              "id": "en-harry-potter-1/c2/s1/w3",
+              "text": "broom",
+              "meaning": "빗자루"
+            },
+            {
+              "id": "en-harry-potter-1/c2/s1/w4",
+              "text": "fly",
+              "meaning": "날다"
+            },
+            {
+              "id": "en-harry-potter-1/c2/s1/w5",
+              "text": "brave",
+              "meaning": "용감한"
+            },
+            {
+              "id": "en-harry-potter-1/c2/s1/w6",
+              "text": "dark",
+              "meaning": "어두운"
+            },
+            {
+              "id": "en-harry-potter-1/c2/s1/w7",
+              "text": "every",
+              "meaning": "모든"
+            },
+            {
+              "id": "en-harry-potter-1/c2/s1/w8",
+              "text": "know",
+              "meaning": "알다"
+            }
+          ],
+          "grammar": []
+        }
       ]
     }
   ]

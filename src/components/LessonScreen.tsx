@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Course, Exercise, LessonResult, Unit } from '../types'
+import type { Course, Exercise, Lesson, LessonResult, Unit } from '../types'
 import type { AppState } from '../lib/storage'
 import { updateSrs, dueWords } from '../lib/srs'
 import { buildLessonExercises, buildReviewExercises, courseAllWords, normalize } from '../lib/exercises'
-import { lessonSentences, lessonWords } from '../lib/lessonModel'
+import { lessonAudioFiles } from '../lib/lessonModel'
 import { playCorrect, playWrong, playMp3, checkAudioFiles } from '../lib/audio'
 
 interface Props {
   course: Course
   unit?: Unit
-  lessonIdx: number
+  lesson?: Lesson
   isReview: boolean
   state: AppState
   setState: (fn: (s: AppState) => AppState) => void
@@ -24,7 +24,7 @@ interface Item {
 
 type Status = 'answering' | 'correct' | 'wrong'
 
-export default function LessonScreen({ course, unit, lessonIdx, isReview, state, setState, onExit, onFinish }: Props) {
+export default function LessonScreen({ course, unit, lesson, isReview, state, setState, onExit, onFinish }: Props) {
   const [items, setItems] = useState<Item[] | null>(null)
   const [pos, setPos] = useState(0)
   const [status, setStatus] = useState<Status>('answering')
@@ -46,13 +46,9 @@ export default function LessonScreen({ course, unit, lessonIdx, isReview, state,
       if (isReview) {
         const due = dueWords(state, course)
         exercises = buildReviewExercises(course, due, courseAllWords(course))
-      } else if (unit) {
-        const lesson = unit.lessons[lessonIdx]
-        const files = [...lessonWords(lesson), ...lessonSentences(lesson)]
-          .map((x) => x.audio)
-          .filter(Boolean) as string[]
-        const ok = await checkAudioFiles(course.id, files)
-        exercises = buildLessonExercises(course, unit, lessonIdx, ok)
+      } else if (unit && lesson) {
+        const ok = await checkAudioFiles(course.id, lessonAudioFiles(lesson))
+        exercises = buildLessonExercises(course, unit, lesson, ok)
       } else {
         exercises = []
       }

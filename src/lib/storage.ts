@@ -1,12 +1,28 @@
 // localStorage 기반 상태 저장 — 진행도 / SRS / 스트릭 / XP / 설정
+import type { ItemId } from '../types'
+
+export const SCHEMA_VERSION = 2
+
 export interface SrsEntry {
   level: number // 0~5 숙련도
   next: string // 다음 복습일 (yyyy-mm-dd)
   seen: number
   wrong: number
+  lastSeen?: string // yyyy-mm-dd
+  lastWrong?: string // yyyy-mm-dd
+}
+
+/** 챕터 단위 진도. "완료한 개수"가 아니라 챕터별 플래그다 —
+ *  7과만 완료 표시해도 1~6과가 딸려 완료되지 않는다. */
+export interface ChapterProgress {
+  markedDone: boolean
+  markedAt?: string
+  quizRuns?: number
+  lastQuizAt?: string
 }
 
 export interface AppState {
+  schemaVersion: number
   courseId: 'zh' | 'en' | 'ja'
   xp: number
   xpToday: number
@@ -19,26 +35,30 @@ export interface AppState {
   hearts: number
   heartsEnabled: boolean
   soundOn: boolean
-  completed: Record<string, number> // unitId → 완료한 레슨 수
-  srs: Record<string, SrsEntry> // "courseId|단어" → SRS
+  progress: Record<string, ChapterProgress> // chapterId → 진도
+  srs: Record<ItemId, SrsEntry> // itemId → SRS
 }
 
 export const STATE_KEY = 'language-study-v1'
 export const MAX_HEARTS = 5
 
 export function today(): string {
-  const d = new Date()
+  return ymd(new Date())
+}
+
+export function ymd(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 function yesterday(): string {
   const d = new Date()
   d.setDate(d.getDate() - 1)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return ymd(d)
 }
 
-function defaults(): AppState {
+export function defaults(): AppState {
   return {
+    schemaVersion: SCHEMA_VERSION,
     courseId: 'zh',
     xp: 0,
     xpToday: 0,
@@ -51,7 +71,7 @@ function defaults(): AppState {
     hearts: MAX_HEARTS,
     heartsEnabled: true,
     soundOn: true,
-    completed: {},
+    progress: {},
     srs: {},
   }
 }
@@ -102,4 +122,36 @@ export function recordStudy(s: AppState, earnedXp: number): AppState {
     lastStudy: t,
     studyDays,
   }
+}
+
+// ── 진도 헬퍼 ────────────────────────────────────────────
+
+export function isChapterDone(s: AppState, chapterId: string): boolean {
+  return s.progress[chapterId]?.markedDone === true
+}
+
+/** 챕터 완료 표시를 켜고 끈다 */
+export function toggleChapterDone(s: AppState, chapterId: string): AppState {
+  const cur = s.progress[chapterId]
+  const next: ChapterProgress = { ...cur, markedDone: !cur?.markedDone }
+  if (next.markedDone) next.markedAt = today()
+  return { ...s, progress: { ...s.progress, [chapterId]: next } }
+}
+
+/** 퀴즈 1회 완료 기록 (완료 표시도 함께 켠다) */
+export function recordChapterQuiz(s: AppState, chapterId: string): AppState {
+  const cur = s.progress[chapterId]
+  const next: ChapterProgress = {
+    ...cur,
+    markedDone: true,
+    markedAt: cur?.markedAt ?? today(),
+    quizRuns: (cur?.quizRuns ?? 0) + 1,
+    lastQuizAt: today(),
+  }
+  return { ...s, progress: { ...s.progress, [chapterId]: next } }
+}
+
+/** 이 책에서 완료 표시된 챕터 수 */
+export function doneChapterCount(s: AppState, chapterIds: string[]): number {
+  return chapterIds.reduce((n, id) => n + (isChapterDone(s, id) ? 1 : 0), 0)
 }

@@ -5,62 +5,329 @@
   "track": "foundation",
   "lessons": [
     {
+      "id": "zh-foundation-2/c1",
+      "order": 0,
       "title": "숫자 1~10",
       "context": "손가락 하나로 배우는 숫자",
-      "words": [
-        { "text": "一", "reading": "yī", "meaning": "1, 하나" },
-        { "text": "二", "reading": "èr", "meaning": "2, 둘" },
-        { "text": "三", "reading": "sān", "meaning": "3, 셋" },
-        { "text": "四", "reading": "sì", "meaning": "4, 넷" },
-        { "text": "五", "reading": "wǔ", "meaning": "5, 다섯" },
-        { "text": "六", "reading": "liù", "meaning": "6, 여섯" },
-        { "text": "七", "reading": "qī", "meaning": "7, 일곱" },
-        { "text": "八", "reading": "bā", "meaning": "8, 여덟" },
-        { "text": "九", "reading": "jiǔ", "meaning": "9, 아홉" },
-        { "text": "十", "reading": "shí", "meaning": "10, 열" }
-      ],
-      "sentences": [
-        { "text": "一、二、三！", "reading": "yī èr sān", "meaning": "하나 둘 셋!", "tokens": ["一", "二", "三"] },
-        { "text": "四、五、六、七。", "reading": "sì wǔ liù qī", "meaning": "넷 다섯 여섯 일곱", "tokens": ["四", "五", "六", "七"] },
-        { "text": "八、九、十！", "reading": "bā jiǔ shí", "meaning": "여덟 아홉 열!", "tokens": ["八", "九", "十"] }
+      "sections": [
+        {
+          "id": "zh-foundation-2/c1/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "zh-foundation-2/c1/s1/p1",
+              "text": "一、二、三！",
+              "reading": "yī èr sān",
+              "meaning": "하나 둘 셋!",
+              "tokens": [
+                "一",
+                "二",
+                "三"
+              ]
+            },
+            {
+              "id": "zh-foundation-2/c1/s1/p2",
+              "text": "四、五、六、七。",
+              "reading": "sì wǔ liù qī",
+              "meaning": "넷 다섯 여섯 일곱",
+              "tokens": [
+                "四",
+                "五",
+                "六",
+                "七"
+              ]
+            },
+            {
+              "id": "zh-foundation-2/c1/s1/p3",
+              "text": "八、九、十！",
+              "reading": "bā jiǔ shí",
+              "meaning": "여덟 아홉 열!",
+              "tokens": [
+                "八",
+                "九",
+                "十"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "zh-foundation-2/c1/s1/w1",
+              "text": "一",
+              "reading": "yī",
+              "meaning": "1, 하나"
+            },
+            {
+              "id": "zh-foundation-2/c1/s1/w2",
+              "text": "二",
+              "reading": "èr",
+              "meaning": "2, 둘"
+            },
+            {
+              "id": "zh-foundation-2/c1/s1/w3",
+              "text": "三",
+              "reading": "sān",
+              "meaning": "3, 셋"
+            },
+            {
+              "id": "zh-foundation-2/c1/s1/w4",
+              "text": "四",
+              "reading": "sì",
+              "meaning": "4, 넷"
+            },
+            {
+              "id": "zh-foundation-2/c1/s1/w5",
+              "text": "五",
+              "reading": "wǔ",
+              "meaning": "5, 다섯"
+            },
+            {
+              "id": "zh-foundation-2/c1/s1/w6",
+              "text": "六",
+              "reading": "liù",
+              "meaning": "6, 여섯"
+            },
+            {
+              "id": "zh-foundation-2/c1/s1/w7",
+              "text": "七",
+              "reading": "qī",
+              "meaning": "7, 일곱"
+            },
+            {
+              "id": "zh-foundation-2/c1/s1/w8",
+              "text": "八",
+              "reading": "bā",
+              "meaning": "8, 여덟"
+            },
+            {
+              "id": "zh-foundation-2/c1/s1/w9",
+              "text": "九",
+              "reading": "jiǔ",
+              "meaning": "9, 아홉"
+            },
+            {
+              "id": "zh-foundation-2/c1/s1/w10",
+              "text": "十",
+              "reading": "shí",
+              "meaning": "10, 열"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "zh-foundation-2/c2",
+      "order": 1,
       "title": "소유 표현 — 的",
       "context": "「나의 ○○」 말하기",
-      "words": [
-        { "text": "的", "reading": "de", "meaning": "~의" },
-        { "text": "这", "reading": "zhè", "meaning": "이, 이것" },
-        { "text": "那", "reading": "nà", "meaning": "저, 저것" },
-        { "text": "书", "reading": "shū", "meaning": "책" },
-        { "text": "手机", "reading": "shǒujī", "meaning": "휴대폰" },
-        { "text": "老师", "reading": "lǎoshī", "meaning": "선생님" },
-        { "text": "学生", "reading": "xuésheng", "meaning": "학생" }
-      ],
-      "sentences": [
-        { "text": "这是我的书。", "reading": "zhè shì wǒ de shū", "meaning": "이것은 내 책이에요", "tokens": ["这", "是", "我", "的", "书"] },
-        { "text": "那是她的手机。", "reading": "nà shì tā de shǒujī", "meaning": "저것은 그녀의 휴대폰이에요", "tokens": ["那", "是", "她", "的", "手机"] },
-        { "text": "我是学生。", "reading": "wǒ shì xuésheng", "meaning": "나는 학생이에요", "tokens": ["我", "是", "学生"] },
-        { "text": "他是我的老师。", "reading": "tā shì wǒ de lǎoshī", "meaning": "그는 나의 선생님이에요", "tokens": ["他", "是", "我", "的", "老师"] }
+      "sections": [
+        {
+          "id": "zh-foundation-2/c2/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "zh-foundation-2/c2/s1/p1",
+              "text": "这是我的书。",
+              "reading": "zhè shì wǒ de shū",
+              "meaning": "이것은 내 책이에요",
+              "tokens": [
+                "这",
+                "是",
+                "我",
+                "的",
+                "书"
+              ]
+            },
+            {
+              "id": "zh-foundation-2/c2/s1/p2",
+              "text": "那是她的手机。",
+              "reading": "nà shì tā de shǒujī",
+              "meaning": "저것은 그녀의 휴대폰이에요",
+              "tokens": [
+                "那",
+                "是",
+                "她",
+                "的",
+                "手机"
+              ]
+            },
+            {
+              "id": "zh-foundation-2/c2/s1/p3",
+              "text": "我是学生。",
+              "reading": "wǒ shì xuésheng",
+              "meaning": "나는 학생이에요",
+              "tokens": [
+                "我",
+                "是",
+                "学生"
+              ]
+            },
+            {
+              "id": "zh-foundation-2/c2/s1/p4",
+              "text": "他是我的老师。",
+              "reading": "tā shì wǒ de lǎoshī",
+              "meaning": "그는 나의 선생님이에요",
+              "tokens": [
+                "他",
+                "是",
+                "我",
+                "的",
+                "老师"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "zh-foundation-2/c2/s1/w1",
+              "text": "的",
+              "reading": "de",
+              "meaning": "~의"
+            },
+            {
+              "id": "zh-foundation-2/c2/s1/w2",
+              "text": "这",
+              "reading": "zhè",
+              "meaning": "이, 이것"
+            },
+            {
+              "id": "zh-foundation-2/c2/s1/w3",
+              "text": "那",
+              "reading": "nà",
+              "meaning": "저, 저것"
+            },
+            {
+              "id": "zh-foundation-2/c2/s1/w4",
+              "text": "书",
+              "reading": "shū",
+              "meaning": "책"
+            },
+            {
+              "id": "zh-foundation-2/c2/s1/w5",
+              "text": "手机",
+              "reading": "shǒujī",
+              "meaning": "휴대폰"
+            },
+            {
+              "id": "zh-foundation-2/c2/s1/w6",
+              "text": "老师",
+              "reading": "lǎoshī",
+              "meaning": "선생님"
+            },
+            {
+              "id": "zh-foundation-2/c2/s1/w7",
+              "text": "学生",
+              "reading": "xuésheng",
+              "meaning": "학생"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "zh-foundation-2/c3",
+      "order": 2,
       "title": "가족 — 有",
       "context": "우리 가족 소개하기",
-      "words": [
-        { "text": "爸爸", "reading": "bàba", "meaning": "아빠" },
-        { "text": "妈妈", "reading": "māma", "meaning": "엄마" },
-        { "text": "哥哥", "reading": "gēge", "meaning": "오빠, 형" },
-        { "text": "姐姐", "reading": "jiějie", "meaning": "언니, 누나" },
-        { "text": "家", "reading": "jiā", "meaning": "집, 가족" },
-        { "text": "有", "reading": "yǒu", "meaning": "있다, 가지고 있다" },
-        { "text": "口", "reading": "kǒu", "meaning": "식구 (세는 말)" },
-        { "text": "个", "reading": "gè", "meaning": "개, 명 (세는 말)" }
-      ],
-      "sentences": [
-        { "text": "我家有四口人。", "reading": "wǒ jiā yǒu sì kǒu rén", "meaning": "우리 집은 네 식구예요", "tokens": ["我", "家", "有", "四", "口", "人"] },
-        { "text": "我有一个哥哥。", "reading": "wǒ yǒu yí gè gēge", "meaning": "나는 오빠가 한 명 있어요", "tokens": ["我", "有", "一", "个", "哥哥"] },
-        { "text": "妈妈很忙。", "reading": "māma hěn máng", "meaning": "엄마는 아주 바빠요", "tokens": ["妈妈", "很", "忙"] }
+      "sections": [
+        {
+          "id": "zh-foundation-2/c3/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "zh-foundation-2/c3/s1/p1",
+              "text": "我家有四口人。",
+              "reading": "wǒ jiā yǒu sì kǒu rén",
+              "meaning": "우리 집은 네 식구예요",
+              "tokens": [
+                "我",
+                "家",
+                "有",
+                "四",
+                "口",
+                "人"
+              ]
+            },
+            {
+              "id": "zh-foundation-2/c3/s1/p2",
+              "text": "我有一个哥哥。",
+              "reading": "wǒ yǒu yí gè gēge",
+              "meaning": "나는 오빠가 한 명 있어요",
+              "tokens": [
+                "我",
+                "有",
+                "一",
+                "个",
+                "哥哥"
+              ]
+            },
+            {
+              "id": "zh-foundation-2/c3/s1/p3",
+              "text": "妈妈很忙。",
+              "reading": "māma hěn máng",
+              "meaning": "엄마는 아주 바빠요",
+              "tokens": [
+                "妈妈",
+                "很",
+                "忙"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "zh-foundation-2/c3/s1/w1",
+              "text": "爸爸",
+              "reading": "bàba",
+              "meaning": "아빠"
+            },
+            {
+              "id": "zh-foundation-2/c3/s1/w2",
+              "text": "妈妈",
+              "reading": "māma",
+              "meaning": "엄마"
+            },
+            {
+              "id": "zh-foundation-2/c3/s1/w3",
+              "text": "哥哥",
+              "reading": "gēge",
+              "meaning": "오빠, 형"
+            },
+            {
+              "id": "zh-foundation-2/c3/s1/w4",
+              "text": "姐姐",
+              "reading": "jiějie",
+              "meaning": "언니, 누나"
+            },
+            {
+              "id": "zh-foundation-2/c3/s1/w5",
+              "text": "家",
+              "reading": "jiā",
+              "meaning": "집, 가족"
+            },
+            {
+              "id": "zh-foundation-2/c3/s1/w6",
+              "text": "有",
+              "reading": "yǒu",
+              "meaning": "있다, 가지고 있다"
+            },
+            {
+              "id": "zh-foundation-2/c3/s1/w7",
+              "text": "口",
+              "reading": "kǒu",
+              "meaning": "식구 (세는 말)"
+            },
+            {
+              "id": "zh-foundation-2/c3/s1/w8",
+              "text": "个",
+              "reading": "gè",
+              "meaning": "개, 명 (세는 말)"
+            }
+          ],
+          "grammar": []
+        }
       ]
     }
   ]

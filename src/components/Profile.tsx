@@ -59,7 +59,7 @@ export default function Profile({
         </div>
         <div className="result-card">
           <div className="result-label">📚 학습 단어</div>
-          <div className="result-value">{learnedCount(state, course.id)}</div>
+          <div className="result-value">{learnedCount(state, course)}</div>
           <div className="result-sub">{course.flag} {course.name}</div>
         </div>
       </div>

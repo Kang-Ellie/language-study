@@ -1,6 +1,15 @@
 import { useRef, useState } from 'react'
-import type { Course, Lesson, Section, Unit } from '../types'
-import { lessonSections } from '../lib/lessonModel'
+import type { Course, Unit } from '../types'
+import {
+  adoptIds,
+  newGrammar,
+  newGrammarExample,
+  newLesson,
+  newSection,
+  newSentence,
+  newWord,
+  normalizeBook,
+} from '../lib/normalize'
 import { deleteCustomBook, isBuiltinBook, isCustomBook, newBookId, parseBookJson, upsertBook } from '../lib/books'
 import { putImage } from '../lib/imageStore'
 import AudioField from './AudioField'
@@ -15,41 +24,24 @@ interface Props {
 
 const EMOJIS = ['📕', '📗', '📘', '📙', '📓', '🥟', '⚡️', '☕️', '🌠', '🕵️', '🎬', '🎵', '🌸', '🧸']
 
-function newSection(title = '본문'): Section {
-  return { title, passages: [], words: [], grammar: [] }
-}
-function newChapter(): Lesson {
-  return { title: '', context: '', sections: [newSection()] }
-}
-
-/** 편집용으로 정규화 (평면 구조 → 섹션 구조) */
-function toEditable(unit?: Unit, courseId?: string): Unit {
-  if (!unit)
+/**
+ * 편집용 사본. **id는 절대 건드리지 않는다** — id가 바뀌면 그 항목에 쌓인 숙련도와
+ * 학습 기록이 끊긴다. 새 책은 여기서 책 id를 미리 발급해 하위 id의 접두사로 쓴다.
+ */
+function toEditable(unit: Unit | undefined, courseId: string): Unit {
+  if (!unit) {
+    const id = newBookId(courseId)
     return {
-      id: '',
+      id,
       title: '',
       emoji: '📕',
       track: 'media',
       sourceType: 'textbook',
       sourceTitle: '',
-      lessons: [newChapter()],
+      lessons: [newLesson(id)],
     }
-  return {
-    ...unit,
-    lessons: unit.lessons.map((l) => ({
-      title: l.title,
-      context: l.context ?? '',
-      sections: lessonSections(l).map((s) => ({
-        title: s.title,
-        passageText: s.passageText ?? '',
-        passageTranslation: s.passageTranslation ?? '',
-        passageAudio: s.passageAudio,
-        passages: [...(s.passages ?? [])],
-        words: [...(s.words ?? [])],
-        grammar: (s.grammar ?? []).map((g) => ({ point: g.point, explanation: g.explanation, examples: [...(g.examples ?? [])] })),
-      })),
-    })),
   }
+  return normalizeBook(unit, unit.id)
 }
 
 /** 본문 전체 텍스트를 문장 부호 기준으로 쪼갬 (퀴즈용 문장 자동 생성) */
@@ -62,6 +54,7 @@ function splitPassage(text: string): string[] {
 
 export default function Editor({ course, initial, onDone, onBack }: Props) {
   const [book, setBook] = useState<Unit>(() => toEditable(initial, course.id))
+  const bookId = book.id
   const [openCh, setOpenCh] = useState(0)
   const [showJson, setShowJson] = useState<'none' | 'import' | 'export'>('none')
   const [jsonText, setJsonText] = useState('')
@@ -82,7 +75,7 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
       return draft
     })
   }
-  const sec = (b: Unit, li: number, si: number) => b.lessons[li].sections![si]
+  const sec = (b: Unit, li: number, si: number) => b.lessons[li].sections[si]
   const galleryInputRef = useRef<HTMLInputElement>(null)
   const galleryTarget = useRef<{ li: number; si: number } | null>(null)
 
@@ -108,23 +101,26 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
     e.target.value = ''
   }
 
+  /** 빈 항목만 걸러내고 저장. id·order는 그대로 넘긴다. */
   function save() {
     if (!book.title.trim()) return setError('책 제목을 입력해 주세요.')
     const lessons = book.lessons
       .map((l) => ({
+        ...l,
         title: l.title.trim(),
         context: l.context?.trim() || undefined,
-        sections: (l.sections ?? [])
+        sections: l.sections
           .map((s) => ({
+            ...s,
             title: s.title.trim() || '본문',
             passageText: s.passageText?.trim() || undefined,
             passageTranslation: s.passageTranslation?.trim() || undefined,
-            passageAudio: s.passageAudio,
             passages: s.passages.filter((p) => p.text.trim()),
             words: s.words.filter((w) => w.text.trim() && w.meaning.trim()),
             grammar: s.grammar
               .filter((g) => g.point.trim())
               .map((g) => ({
+                ...g,
                 point: g.point.trim(),
                 explanation: g.explanation.trim(),
                 examples: g.examples.filter((e) => e.text.trim()),
@@ -134,15 +130,23 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
       }))
       .filter((l) => l.title && l.sections.length)
     if (lessons.length === 0) return setError('내용이 있는 챕터가 최소 1개 필요해요. (본문·새단어·문법 중 하나는 채워주세요)')
-    const id = book.id || newBookId(course.id)
-    upsertBook(course.id, { ...book, id, lessons })
-    onDone(id)
+    upsertBook(course.id, { ...book, lessons })
+    onDone(book.id)
   }
 
   function importJson() {
-    const parsed = parseBookJson(jsonText)
+    // 붙여넣은 JSON에 id가 없으면, 지금 편집 중인 책에서 같은 텍스트의 id를 물려받는다.
+    // (같은 과를 AI로 다시 만들어 붙여넣어도 숙련도가 리셋되지 않는다)
+    let raw: unknown
+    try {
+      raw = JSON.parse(jsonText)
+    } catch {
+      return setError('JSON 형식이 아니에요. 중괄호 { } 전체를 붙여넣었는지 확인해 주세요.')
+    }
+    const withIds = adoptIds(raw as Parameters<typeof adoptIds>[0], book)
+    const parsed = parseBookJson(JSON.stringify(withIds), book.id)
     if (typeof parsed === 'string') return setError(parsed)
-    setBook(toEditable({ ...parsed, id: initial?.id ?? parsed.id }, course.id))
+    setBook(parsed)
     setShowJson('none')
     setJsonText('')
     setError('')
@@ -231,7 +235,7 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
             <div key={li} className="chapter-card">
               <button className="chapter-head" onClick={() => setOpenCh(openCh === li ? -1 : li)}>
                 <span>📑 {li + 1}장 — {lesson.title || '(제목 없음)'}</span>
-                <span className="chapter-meta">{(lesson.sections ?? []).length}개 소카테고리 {openCh === li ? '▲' : '▼'}</span>
+                <span className="chapter-meta">{lesson.sections.length}개 소카테고리 {openCh === li ? '▲' : '▼'}</span>
               </button>
               {openCh === li && (
                 <div className="chapter-body">
@@ -240,13 +244,13 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
                     <input value={lesson.context ?? ''} placeholder="한 줄 설명 (선택)" onChange={(e) => mutate((b) => { b.lessons[li].context = e.target.value })} />
                   </div>
 
-                  {(lesson.sections ?? []).map((section, si) => (
+                  {lesson.sections.map((section, si) => (
                     <div key={si} className="section-card">
                       <div className="section-head">
                         <span className="section-tag">📂 소카테고리</span>
                         <input className="section-title" value={section.title} placeholder="예: 회화1 / 본문 / 독해" onChange={(e) => mutate((b) => { sec(b, li, si).title = e.target.value })} />
-                        {(lesson.sections?.length ?? 0) > 1 && (
-                          <button className="mini-del" title="소카테고리 삭제" onClick={() => mutate((b) => { b.lessons[li].sections!.splice(si, 1) })}>🗑</button>
+                        {lesson.sections.length > 1 && (
+                          <button className="mini-del" title="소카테고리 삭제" onClick={() => mutate((b) => { b.lessons[li].sections.splice(si, 1) })}>🗑</button>
                         )}
                       </div>
 
@@ -292,7 +296,7 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
                               const s = sec(b, li, si)
                               const parts = splitPassage(s.passageText ?? '')
                               const existing = new Set(s.passages.map((p) => p.text))
-                              for (const t of parts) if (!existing.has(t)) s.passages.push({ text: t, meaning: '' })
+                              for (const t of parts) if (!existing.has(t)) s.passages.push(newSentence(s.id, t))
                             })}
                           >
                             ✂️ 문장으로 자동 분리 (퀴즈용, 선택)
@@ -322,7 +326,7 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
                         </div>
                       ))}
                       {openDetail[`${li}-${si}`] && (
-                        <button className="pill soft tiny" onClick={() => mutate((b) => { sec(b, li, si).passages.push({ text: '', meaning: '' }) })}>＋ 문장 직접 추가</button>
+                        <button className="pill soft tiny" onClick={() => mutate((b) => { sec(b, li, si).passages.push(newSentence(sec(b, li, si).id)) })}>＋ 문장 직접 추가</button>
                       )}
 
                       {/* 새단어 */}
@@ -338,7 +342,7 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
                           <AudioField courseId={course.id} value={w.audio} slug={w.text} onChange={(f) => mutate((b) => { sec(b, li, si).words[wi].audio = f })} />
                         </div>
                       ))}
-                      <button className="pill soft" onClick={() => mutate((b) => { sec(b, li, si).words.push({ text: '', meaning: '' }) })}>＋ 새단어</button>
+                      <button className="pill soft" onClick={() => mutate((b) => { sec(b, li, si).words.push(newWord(sec(b, li, si).id)) })}>＋ 새단어</button>
 
                       {/* 문법 */}
                       <h5>📐 문법</h5>
@@ -356,14 +360,14 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
                               <button className="mini-del" onClick={() => mutate((b) => { sec(b, li, si).grammar[gi].examples.splice(ei, 1) })}>✕</button>
                             </div>
                           ))}
-                          <button className="pill soft tiny" onClick={() => mutate((b) => { sec(b, li, si).grammar[gi].examples.push({ text: '', meaning: '' }) })}>＋ 예문</button>
+                          <button className="pill soft tiny" onClick={() => mutate((b) => { sec(b, li, si).grammar[gi].examples.push(newGrammarExample(sec(b, li, si).grammar[gi].id)) })}>＋ 예문</button>
                         </div>
                       ))}
-                      <button className="pill soft" onClick={() => mutate((b) => { sec(b, li, si).grammar.push({ point: '', explanation: '', examples: [] }) })}>＋ 문법</button>
+                      <button className="pill soft" onClick={() => mutate((b) => { sec(b, li, si).grammar.push(newGrammar(sec(b, li, si).id)) })}>＋ 문법</button>
                     </div>
                   ))}
 
-                  <button className="pill" onClick={() => mutate((b) => { b.lessons[li].sections!.push(newSection('')) })}>＋ 소카테고리 추가</button>
+                  <button className="pill" onClick={() => mutate((b) => { b.lessons[li].sections.push(newSection(b.lessons[li].id, '')) })}>＋ 소카테고리 추가</button>
                   {book.lessons.length > 1 && (
                     <button className="pill danger-text" onClick={() => { if (confirm('이 챕터를 삭제할까요?')) mutate((b) => { b.lessons.splice(li, 1) }) }}>이 챕터 삭제</button>
                   )}
@@ -372,7 +376,7 @@ export default function Editor({ course, initial, onDone, onBack }: Props) {
             </div>
           ))}
 
-          <button className="pill big" onClick={() => { mutate((b) => { b.lessons.push(newChapter()) }); setOpenCh(book.lessons.length) }}>＋ 챕터 추가</button>
+          <button className="pill big" onClick={() => { mutate((b) => { b.lessons.push(newLesson(bookId)) }); setOpenCh(book.lessons.length) }}>＋ 챕터 추가</button>
 
           {error && <p className="editor-error">⚠️ {error}</p>}
 

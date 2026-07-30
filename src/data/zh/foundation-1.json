@@ -5,76 +5,392 @@
   "track": "foundation",
   "lessons": [
     {
+      "id": "zh-foundation-1/c1",
+      "order": 0,
       "title": "인사하기",
       "context": "만났을 때, 헤어질 때, 고마울 때",
-      "words": [
-        { "text": "你好", "reading": "nǐ hǎo", "meaning": "안녕하세요", "audio": "nihao.mp3" },
-        { "text": "您好", "reading": "nín hǎo", "meaning": "안녕하세요 (높임)" },
-        { "text": "再见", "reading": "zài jiàn", "meaning": "잘 가요", "audio": "zaijian.mp3" },
-        { "text": "谢谢", "reading": "xiè xie", "meaning": "고마워요", "audio": "xiexie.mp3" },
-        { "text": "不客气", "reading": "bú kè qi", "meaning": "천만에요" },
-        { "text": "对不起", "reading": "duì bu qǐ", "meaning": "미안해요" },
-        { "text": "没关系", "reading": "méi guān xi", "meaning": "괜찮아요" }
-      ],
-      "sentences": [
-        { "text": "你好！", "reading": "nǐ hǎo", "meaning": "안녕하세요!", "tokens": ["你好"] },
-        { "text": "谢谢你！", "reading": "xiè xie nǐ", "meaning": "고마워요!", "tokens": ["谢谢", "你"] },
-        { "text": "对不起。— 没关系。", "reading": "duì bu qǐ — méi guān xi", "meaning": "미안해요 — 괜찮아요", "tokens": ["对不起", "没关系"] },
-        { "text": "再见！", "reading": "zài jiàn", "meaning": "잘 가요!", "tokens": ["再见"] }
+      "sections": [
+        {
+          "id": "zh-foundation-1/c1/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "zh-foundation-1/c1/s1/p1",
+              "text": "你好！",
+              "reading": "nǐ hǎo",
+              "meaning": "안녕하세요!",
+              "tokens": [
+                "你好"
+              ]
+            },
+            {
+              "id": "zh-foundation-1/c1/s1/p2",
+              "text": "谢谢你！",
+              "reading": "xiè xie nǐ",
+              "meaning": "고마워요!",
+              "tokens": [
+                "谢谢",
+                "你"
+              ]
+            },
+            {
+              "id": "zh-foundation-1/c1/s1/p3",
+              "text": "对不起。— 没关系。",
+              "reading": "duì bu qǐ — méi guān xi",
+              "meaning": "미안해요 — 괜찮아요",
+              "tokens": [
+                "对不起",
+                "没关系"
+              ]
+            },
+            {
+              "id": "zh-foundation-1/c1/s1/p4",
+              "text": "再见！",
+              "reading": "zài jiàn",
+              "meaning": "잘 가요!",
+              "tokens": [
+                "再见"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "zh-foundation-1/c1/s1/w1",
+              "text": "你好",
+              "reading": "nǐ hǎo",
+              "meaning": "안녕하세요",
+              "audio": "nihao.mp3"
+            },
+            {
+              "id": "zh-foundation-1/c1/s1/w2",
+              "text": "您好",
+              "reading": "nín hǎo",
+              "meaning": "안녕하세요 (높임)"
+            },
+            {
+              "id": "zh-foundation-1/c1/s1/w3",
+              "text": "再见",
+              "reading": "zài jiàn",
+              "meaning": "잘 가요",
+              "audio": "zaijian.mp3"
+            },
+            {
+              "id": "zh-foundation-1/c1/s1/w4",
+              "text": "谢谢",
+              "reading": "xiè xie",
+              "meaning": "고마워요",
+              "audio": "xiexie.mp3"
+            },
+            {
+              "id": "zh-foundation-1/c1/s1/w5",
+              "text": "不客气",
+              "reading": "bú kè qi",
+              "meaning": "천만에요"
+            },
+            {
+              "id": "zh-foundation-1/c1/s1/w6",
+              "text": "对不起",
+              "reading": "duì bu qǐ",
+              "meaning": "미안해요"
+            },
+            {
+              "id": "zh-foundation-1/c1/s1/w7",
+              "text": "没关系",
+              "reading": "méi guān xi",
+              "meaning": "괜찮아요"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "zh-foundation-1/c2",
+      "order": 1,
       "title": "나와 너 — 是",
       "context": "「A는 B예요」 라고 말하기",
-      "words": [
-        { "text": "我", "reading": "wǒ", "meaning": "나" },
-        { "text": "你", "reading": "nǐ", "meaning": "너" },
-        { "text": "他", "reading": "tā", "meaning": "그" },
-        { "text": "她", "reading": "tā", "meaning": "그녀" },
-        { "text": "我们", "reading": "wǒmen", "meaning": "우리" },
-        { "text": "是", "reading": "shì", "meaning": "~이다" },
-        { "text": "韩国人", "reading": "Hánguórén", "meaning": "한국인" },
-        { "text": "朋友", "reading": "péngyou", "meaning": "친구" }
-      ],
-      "sentences": [
-        { "text": "我是韩国人。", "reading": "wǒ shì Hánguórén", "meaning": "나는 한국인이에요", "tokens": ["我", "是", "韩国人"] },
-        { "text": "她是我朋友。", "reading": "tā shì wǒ péngyou", "meaning": "그녀는 내 친구예요", "tokens": ["她", "是", "我", "朋友"] },
-        { "text": "我们是朋友。", "reading": "wǒmen shì péngyou", "meaning": "우리는 친구예요", "tokens": ["我们", "是", "朋友"] }
+      "sections": [
+        {
+          "id": "zh-foundation-1/c2/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "zh-foundation-1/c2/s1/p1",
+              "text": "我是韩国人。",
+              "reading": "wǒ shì Hánguórén",
+              "meaning": "나는 한국인이에요",
+              "tokens": [
+                "我",
+                "是",
+                "韩国人"
+              ]
+            },
+            {
+              "id": "zh-foundation-1/c2/s1/p2",
+              "text": "她是我朋友。",
+              "reading": "tā shì wǒ péngyou",
+              "meaning": "그녀는 내 친구예요",
+              "tokens": [
+                "她",
+                "是",
+                "我",
+                "朋友"
+              ]
+            },
+            {
+              "id": "zh-foundation-1/c2/s1/p3",
+              "text": "我们是朋友。",
+              "reading": "wǒmen shì péngyou",
+              "meaning": "우리는 친구예요",
+              "tokens": [
+                "我们",
+                "是",
+                "朋友"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "zh-foundation-1/c2/s1/w1",
+              "text": "我",
+              "reading": "wǒ",
+              "meaning": "나"
+            },
+            {
+              "id": "zh-foundation-1/c2/s1/w2",
+              "text": "你",
+              "reading": "nǐ",
+              "meaning": "너"
+            },
+            {
+              "id": "zh-foundation-1/c2/s1/w3",
+              "text": "他",
+              "reading": "tā",
+              "meaning": "그"
+            },
+            {
+              "id": "zh-foundation-1/c2/s1/w4",
+              "text": "她",
+              "reading": "tā",
+              "meaning": "그녀"
+            },
+            {
+              "id": "zh-foundation-1/c2/s1/w5",
+              "text": "我们",
+              "reading": "wǒmen",
+              "meaning": "우리"
+            },
+            {
+              "id": "zh-foundation-1/c2/s1/w6",
+              "text": "是",
+              "reading": "shì",
+              "meaning": "~이다"
+            },
+            {
+              "id": "zh-foundation-1/c2/s1/w7",
+              "text": "韩国人",
+              "reading": "Hánguórén",
+              "meaning": "한국인"
+            },
+            {
+              "id": "zh-foundation-1/c2/s1/w8",
+              "text": "朋友",
+              "reading": "péngyou",
+              "meaning": "친구"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "zh-foundation-1/c3",
+      "order": 2,
       "title": "묻고 답하기 — 吗",
       "context": "문장 끝에 吗를 붙이면 질문이 돼요",
-      "words": [
-        { "text": "吗", "reading": "ma", "meaning": "~요? (의문)" },
-        { "text": "不", "reading": "bù", "meaning": "아니 (부정)" },
-        { "text": "很", "reading": "hěn", "meaning": "아주" },
-        { "text": "好", "reading": "hǎo", "meaning": "좋다" },
-        { "text": "忙", "reading": "máng", "meaning": "바쁘다" },
-        { "text": "累", "reading": "lèi", "meaning": "피곤하다" },
-        { "text": "也", "reading": "yě", "meaning": "~도" }
-      ],
-      "sentences": [
-        { "text": "你忙吗？", "reading": "nǐ máng ma", "meaning": "너 바빠요?", "tokens": ["你", "忙", "吗"] },
-        { "text": "我很忙。", "reading": "wǒ hěn máng", "meaning": "나는 아주 바빠요", "tokens": ["我", "很", "忙"] },
-        { "text": "我不累。", "reading": "wǒ bú lèi", "meaning": "나는 안 피곤해요", "tokens": ["我", "不", "累"] },
-        { "text": "我也很好。", "reading": "wǒ yě hěn hǎo", "meaning": "나도 아주 좋아요", "tokens": ["我", "也", "很", "好"] }
+      "sections": [
+        {
+          "id": "zh-foundation-1/c3/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "zh-foundation-1/c3/s1/p1",
+              "text": "你忙吗？",
+              "reading": "nǐ máng ma",
+              "meaning": "너 바빠요?",
+              "tokens": [
+                "你",
+                "忙",
+                "吗"
+              ]
+            },
+            {
+              "id": "zh-foundation-1/c3/s1/p2",
+              "text": "我很忙。",
+              "reading": "wǒ hěn máng",
+              "meaning": "나는 아주 바빠요",
+              "tokens": [
+                "我",
+                "很",
+                "忙"
+              ]
+            },
+            {
+              "id": "zh-foundation-1/c3/s1/p3",
+              "text": "我不累。",
+              "reading": "wǒ bú lèi",
+              "meaning": "나는 안 피곤해요",
+              "tokens": [
+                "我",
+                "不",
+                "累"
+              ]
+            },
+            {
+              "id": "zh-foundation-1/c3/s1/p4",
+              "text": "我也很好。",
+              "reading": "wǒ yě hěn hǎo",
+              "meaning": "나도 아주 좋아요",
+              "tokens": [
+                "我",
+                "也",
+                "很",
+                "好"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "zh-foundation-1/c3/s1/w1",
+              "text": "吗",
+              "reading": "ma",
+              "meaning": "~요? (의문)"
+            },
+            {
+              "id": "zh-foundation-1/c3/s1/w2",
+              "text": "不",
+              "reading": "bù",
+              "meaning": "아니 (부정)"
+            },
+            {
+              "id": "zh-foundation-1/c3/s1/w3",
+              "text": "很",
+              "reading": "hěn",
+              "meaning": "아주"
+            },
+            {
+              "id": "zh-foundation-1/c3/s1/w4",
+              "text": "好",
+              "reading": "hǎo",
+              "meaning": "좋다"
+            },
+            {
+              "id": "zh-foundation-1/c3/s1/w5",
+              "text": "忙",
+              "reading": "máng",
+              "meaning": "바쁘다"
+            },
+            {
+              "id": "zh-foundation-1/c3/s1/w6",
+              "text": "累",
+              "reading": "lèi",
+              "meaning": "피곤하다"
+            },
+            {
+              "id": "zh-foundation-1/c3/s1/w7",
+              "text": "也",
+              "reading": "yě",
+              "meaning": "~도"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "zh-foundation-1/c4",
+      "order": 3,
       "title": "이름 묻기",
       "context": "처음 만난 사람과 통성명",
-      "words": [
-        { "text": "叫", "reading": "jiào", "meaning": "~라고 부르다" },
-        { "text": "什么", "reading": "shénme", "meaning": "무엇" },
-        { "text": "名字", "reading": "míngzi", "meaning": "이름" },
-        { "text": "认识", "reading": "rènshi", "meaning": "알다, 알게 되다" },
-        { "text": "高兴", "reading": "gāoxìng", "meaning": "기쁘다" }
-      ],
-      "sentences": [
-        { "text": "你叫什么名字？", "reading": "nǐ jiào shénme míngzi", "meaning": "이름이 뭐예요?", "tokens": ["你", "叫", "什么", "名字"] },
-        { "text": "我叫美娜。", "reading": "wǒ jiào Měinà", "meaning": "저는 미나라고 해요", "tokens": ["我", "叫", "美娜"] },
-        { "text": "认识你很高兴。", "reading": "rènshi nǐ hěn gāoxìng", "meaning": "만나서 아주 기뻐요", "tokens": ["认识", "你", "很", "高兴"] }
+      "sections": [
+        {
+          "id": "zh-foundation-1/c4/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "zh-foundation-1/c4/s1/p1",
+              "text": "你叫什么名字？",
+              "reading": "nǐ jiào shénme míngzi",
+              "meaning": "이름이 뭐예요?",
+              "tokens": [
+                "你",
+                "叫",
+                "什么",
+                "名字"
+              ]
+            },
+            {
+              "id": "zh-foundation-1/c4/s1/p2",
+              "text": "我叫美娜。",
+              "reading": "wǒ jiào Měinà",
+              "meaning": "저는 미나라고 해요",
+              "tokens": [
+                "我",
+                "叫",
+                "美娜"
+              ]
+            },
+            {
+              "id": "zh-foundation-1/c4/s1/p3",
+              "text": "认识你很高兴。",
+              "reading": "rènshi nǐ hěn gāoxìng",
+              "meaning": "만나서 아주 기뻐요",
+              "tokens": [
+                "认识",
+                "你",
+                "很",
+                "高兴"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "zh-foundation-1/c4/s1/w1",
+              "text": "叫",
+              "reading": "jiào",
+              "meaning": "~라고 부르다"
+            },
+            {
+              "id": "zh-foundation-1/c4/s1/w2",
+              "text": "什么",
+              "reading": "shénme",
+              "meaning": "무엇"
+            },
+            {
+              "id": "zh-foundation-1/c4/s1/w3",
+              "text": "名字",
+              "reading": "míngzi",
+              "meaning": "이름"
+            },
+            {
+              "id": "zh-foundation-1/c4/s1/w4",
+              "text": "认识",
+              "reading": "rènshi",
+              "meaning": "알다, 알게 되다"
+            },
+            {
+              "id": "zh-foundation-1/c4/s1/w5",
+              "text": "高兴",
+              "reading": "gāoxìng",
+              "meaning": "기쁘다"
+            }
+          ],
+          "grammar": []
+        }
       ]
     }
   ]

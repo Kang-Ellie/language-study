@@ -5,60 +5,222 @@
   "track": "foundation",
   "lessons": [
     {
+      "id": "en-foundation-2/c1",
+      "order": 0,
       "title": "숫자 1~10",
       "context": "개수 세기",
-      "words": [
-        { "text": "one", "meaning": "1, 하나" },
-        { "text": "two", "meaning": "2, 둘" },
-        { "text": "three", "meaning": "3, 셋" },
-        { "text": "four", "meaning": "4, 넷" },
-        { "text": "five", "meaning": "5, 다섯" },
-        { "text": "six", "meaning": "6, 여섯" },
-        { "text": "seven", "meaning": "7, 일곱" },
-        { "text": "eight", "meaning": "8, 여덟" },
-        { "text": "nine", "meaning": "9, 아홉" },
-        { "text": "ten", "meaning": "10, 열" }
-      ],
-      "sentences": [
-        { "text": "I have two cats.", "meaning": "나는 고양이 두 마리가 있어요" },
-        { "text": "She has three books.", "meaning": "그녀는 책 세 권이 있어요" }
+      "sections": [
+        {
+          "id": "en-foundation-2/c1/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "en-foundation-2/c1/s1/p1",
+              "text": "I have two cats.",
+              "meaning": "나는 고양이 두 마리가 있어요"
+            },
+            {
+              "id": "en-foundation-2/c1/s1/p2",
+              "text": "She has three books.",
+              "meaning": "그녀는 책 세 권이 있어요"
+            }
+          ],
+          "words": [
+            {
+              "id": "en-foundation-2/c1/s1/w1",
+              "text": "one",
+              "meaning": "1, 하나"
+            },
+            {
+              "id": "en-foundation-2/c1/s1/w2",
+              "text": "two",
+              "meaning": "2, 둘"
+            },
+            {
+              "id": "en-foundation-2/c1/s1/w3",
+              "text": "three",
+              "meaning": "3, 셋"
+            },
+            {
+              "id": "en-foundation-2/c1/s1/w4",
+              "text": "four",
+              "meaning": "4, 넷"
+            },
+            {
+              "id": "en-foundation-2/c1/s1/w5",
+              "text": "five",
+              "meaning": "5, 다섯"
+            },
+            {
+              "id": "en-foundation-2/c1/s1/w6",
+              "text": "six",
+              "meaning": "6, 여섯"
+            },
+            {
+              "id": "en-foundation-2/c1/s1/w7",
+              "text": "seven",
+              "meaning": "7, 일곱"
+            },
+            {
+              "id": "en-foundation-2/c1/s1/w8",
+              "text": "eight",
+              "meaning": "8, 여덟"
+            },
+            {
+              "id": "en-foundation-2/c1/s1/w9",
+              "text": "nine",
+              "meaning": "9, 아홉"
+            },
+            {
+              "id": "en-foundation-2/c1/s1/w10",
+              "text": "ten",
+              "meaning": "10, 열"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "en-foundation-2/c2",
+      "order": 1,
       "title": "시간 표현",
       "context": "오늘, 내일, 지금",
-      "words": [
-        { "text": "today", "meaning": "오늘" },
-        { "text": "tomorrow", "meaning": "내일" },
-        { "text": "yesterday", "meaning": "어제" },
-        { "text": "now", "meaning": "지금" },
-        { "text": "morning", "meaning": "아침" },
-        { "text": "night", "meaning": "밤" },
-        { "text": "time", "meaning": "시간" },
-        { "text": "see", "meaning": "보다" }
-      ],
-      "sentences": [
-        { "text": "What time is it now?", "meaning": "지금 몇 시예요?" },
-        { "text": "I am busy today.", "meaning": "나는 오늘 바빠요" },
-        { "text": "See you tomorrow.", "meaning": "내일 봐요" }
+      "sections": [
+        {
+          "id": "en-foundation-2/c2/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "en-foundation-2/c2/s1/p1",
+              "text": "What time is it now?",
+              "meaning": "지금 몇 시예요?"
+            },
+            {
+              "id": "en-foundation-2/c2/s1/p2",
+              "text": "I am busy today.",
+              "meaning": "나는 오늘 바빠요"
+            },
+            {
+              "id": "en-foundation-2/c2/s1/p3",
+              "text": "See you tomorrow.",
+              "meaning": "내일 봐요"
+            }
+          ],
+          "words": [
+            {
+              "id": "en-foundation-2/c2/s1/w1",
+              "text": "today",
+              "meaning": "오늘"
+            },
+            {
+              "id": "en-foundation-2/c2/s1/w2",
+              "text": "tomorrow",
+              "meaning": "내일"
+            },
+            {
+              "id": "en-foundation-2/c2/s1/w3",
+              "text": "yesterday",
+              "meaning": "어제"
+            },
+            {
+              "id": "en-foundation-2/c2/s1/w4",
+              "text": "now",
+              "meaning": "지금"
+            },
+            {
+              "id": "en-foundation-2/c2/s1/w5",
+              "text": "morning",
+              "meaning": "아침"
+            },
+            {
+              "id": "en-foundation-2/c2/s1/w6",
+              "text": "night",
+              "meaning": "밤"
+            },
+            {
+              "id": "en-foundation-2/c2/s1/w7",
+              "text": "time",
+              "meaning": "시간"
+            },
+            {
+              "id": "en-foundation-2/c2/s1/w8",
+              "text": "see",
+              "meaning": "보다"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "en-foundation-2/c3",
+      "order": 2,
       "title": "의문사",
       "context": "무엇, 누구, 어디, 왜",
-      "words": [
-        { "text": "what", "meaning": "무엇" },
-        { "text": "who", "meaning": "누구" },
-        { "text": "where", "meaning": "어디" },
-        { "text": "when", "meaning": "언제" },
-        { "text": "why", "meaning": "왜" },
-        { "text": "how", "meaning": "어떻게" },
-        { "text": "sad", "meaning": "슬픈" }
-      ],
-      "sentences": [
-        { "text": "Where are you?", "meaning": "어디에 있어요?" },
-        { "text": "Who is she?", "meaning": "그녀는 누구예요?" },
-        { "text": "Why are you sad?", "meaning": "왜 슬퍼요?" }
+      "sections": [
+        {
+          "id": "en-foundation-2/c3/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "en-foundation-2/c3/s1/p1",
+              "text": "Where are you?",
+              "meaning": "어디에 있어요?"
+            },
+            {
+              "id": "en-foundation-2/c3/s1/p2",
+              "text": "Who is she?",
+              "meaning": "그녀는 누구예요?"
+            },
+            {
+              "id": "en-foundation-2/c3/s1/p3",
+              "text": "Why are you sad?",
+              "meaning": "왜 슬퍼요?"
+            }
+          ],
+          "words": [
+            {
+              "id": "en-foundation-2/c3/s1/w1",
+              "text": "what",
+              "meaning": "무엇"
+            },
+            {
+              "id": "en-foundation-2/c3/s1/w2",
+              "text": "who",
+              "meaning": "누구"
+            },
+            {
+              "id": "en-foundation-2/c3/s1/w3",
+              "text": "where",
+              "meaning": "어디"
+            },
+            {
+              "id": "en-foundation-2/c3/s1/w4",
+              "text": "when",
+              "meaning": "언제"
+            },
+            {
+              "id": "en-foundation-2/c3/s1/w5",
+              "text": "why",
+              "meaning": "왜"
+            },
+            {
+              "id": "en-foundation-2/c3/s1/w6",
+              "text": "how",
+              "meaning": "어떻게"
+            },
+            {
+              "id": "en-foundation-2/c3/s1/w7",
+              "text": "sad",
+              "meaning": "슬픈"
+            }
+          ],
+          "grammar": []
+        }
       ]
     }
   ]

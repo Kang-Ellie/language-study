@@ -7,40 +7,191 @@
   "sourceTitle": "君の名は。",
   "lessons": [
     {
+      "id": "ja-kimi-no-na-wa/c1",
+      "order": 0,
       "title": "꿈에서 만난 사람",
       "context": "이름을 잊어버렸어",
-      "words": [
-        { "text": "夢", "reading": "ゆめ", "meaning": "꿈" },
-        { "text": "名前", "reading": "なまえ", "meaning": "이름" },
-        { "text": "誰", "reading": "だれ", "meaning": "누구" },
-        { "text": "会う", "reading": "あう", "meaning": "만나다" },
-        { "text": "覚える", "reading": "おぼえる", "meaning": "기억하다" },
-        { "text": "忘れる", "reading": "わすれる", "meaning": "잊다" },
-        { "text": "君", "reading": "きみ", "meaning": "너" }
-      ],
-      "sentences": [
-        { "text": "君の 名前は？", "reading": "きみの なまえは", "meaning": "너의 이름은?", "tokens": ["君の", "名前は"] },
-        { "text": "夢で 会った 気がする。", "reading": "ゆめで あった きがする", "meaning": "꿈에서 만난 것 같아", "tokens": ["夢で", "会った", "気がする"] },
-        { "text": "名前を 忘れた。", "reading": "なまえを わすれた", "meaning": "이름을 잊어버렸어", "tokens": ["名前を", "忘れた"] }
+      "sections": [
+        {
+          "id": "ja-kimi-no-na-wa/c1/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "ja-kimi-no-na-wa/c1/s1/p1",
+              "text": "君の 名前は？",
+              "reading": "きみの なまえは",
+              "meaning": "너의 이름은?",
+              "tokens": [
+                "君の",
+                "名前は"
+              ]
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c1/s1/p2",
+              "text": "夢で 会った 気がする。",
+              "reading": "ゆめで あった きがする",
+              "meaning": "꿈에서 만난 것 같아",
+              "tokens": [
+                "夢で",
+                "会った",
+                "気がする"
+              ]
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c1/s1/p3",
+              "text": "名前を 忘れた。",
+              "reading": "なまえを わすれた",
+              "meaning": "이름을 잊어버렸어",
+              "tokens": [
+                "名前を",
+                "忘れた"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "ja-kimi-no-na-wa/c1/s1/w1",
+              "text": "夢",
+              "reading": "ゆめ",
+              "meaning": "꿈"
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c1/s1/w2",
+              "text": "名前",
+              "reading": "なまえ",
+              "meaning": "이름"
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c1/s1/w3",
+              "text": "誰",
+              "reading": "だれ",
+              "meaning": "누구"
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c1/s1/w4",
+              "text": "会う",
+              "reading": "あう",
+              "meaning": "만나다"
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c1/s1/w5",
+              "text": "覚える",
+              "reading": "おぼえる",
+              "meaning": "기억하다"
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c1/s1/w6",
+              "text": "忘れる",
+              "reading": "わすれる",
+              "meaning": "잊다"
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c1/s1/w7",
+              "text": "君",
+              "reading": "きみ",
+              "meaning": "너"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "ja-kimi-no-na-wa/c2",
+      "order": 1,
       "title": "시간과 인연",
       "context": "소중한 사람을 찾아서",
-      "words": [
-        { "text": "時間", "reading": "じかん", "meaning": "시간" },
-        { "text": "空", "reading": "そら", "meaning": "하늘" },
-        { "text": "星", "reading": "ほし", "meaning": "별" },
-        { "text": "町", "reading": "まち", "meaning": "마을" },
-        { "text": "探す", "reading": "さがす", "meaning": "찾다" },
-        { "text": "大切", "reading": "たいせつ", "meaning": "소중함" },
-        { "text": "心", "reading": "こころ", "meaning": "마음" },
-        { "text": "きれい", "meaning": "예쁘다" }
-      ],
-      "sentences": [
-        { "text": "大切な 人を 探して いる。", "reading": "たいせつな ひとを さがして いる", "meaning": "소중한 사람을 찾고 있어", "tokens": ["大切な", "人を", "探して", "いる"] },
-        { "text": "星が きれいだ。", "reading": "ほしが きれいだ", "meaning": "별이 예쁘다", "tokens": ["星が", "きれいだ"] },
-        { "text": "君に 会いたい。", "reading": "きみに あいたい", "meaning": "너를 만나고 싶어", "tokens": ["君に", "会いたい"] }
+      "sections": [
+        {
+          "id": "ja-kimi-no-na-wa/c2/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "ja-kimi-no-na-wa/c2/s1/p1",
+              "text": "大切な 人を 探して いる。",
+              "reading": "たいせつな ひとを さがして いる",
+              "meaning": "소중한 사람을 찾고 있어",
+              "tokens": [
+                "大切な",
+                "人を",
+                "探して",
+                "いる"
+              ]
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c2/s1/p2",
+              "text": "星が きれいだ。",
+              "reading": "ほしが きれいだ",
+              "meaning": "별이 예쁘다",
+              "tokens": [
+                "星が",
+                "きれいだ"
+              ]
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c2/s1/p3",
+              "text": "君に 会いたい。",
+              "reading": "きみに あいたい",
+              "meaning": "너를 만나고 싶어",
+              "tokens": [
+                "君に",
+                "会いたい"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "ja-kimi-no-na-wa/c2/s1/w1",
+              "text": "時間",
+              "reading": "じかん",
+              "meaning": "시간"
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c2/s1/w2",
+              "text": "空",
+              "reading": "そら",
+              "meaning": "하늘"
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c2/s1/w3",
+              "text": "星",
+              "reading": "ほし",
+              "meaning": "별"
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c2/s1/w4",
+              "text": "町",
+              "reading": "まち",
+              "meaning": "마을"
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c2/s1/w5",
+              "text": "探す",
+              "reading": "さがす",
+              "meaning": "찾다"
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c2/s1/w6",
+              "text": "大切",
+              "reading": "たいせつ",
+              "meaning": "소중함"
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c2/s1/w7",
+              "text": "心",
+              "reading": "こころ",
+              "meaning": "마음"
+            },
+            {
+              "id": "ja-kimi-no-na-wa/c2/s1/w8",
+              "text": "きれい",
+              "meaning": "예쁘다"
+            }
+          ],
+          "grammar": []
+        }
       ]
     }
   ]

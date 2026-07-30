@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { Course, Unit } from '../types'
-import type { AppState } from '../lib/storage'
+import { doneChapterCount, isChapterDone, type AppState } from '../lib/storage'
 import { checkAudioFiles, playMp3 } from '../lib/audio'
-import { lessonSections } from '../lib/lessonModel'
+import { bookAudioFiles } from '../lib/lessonModel'
 import { bookLogDays } from '../lib/studyLog'
 import { SOURCE_LABEL } from './Shelf'
 import ImageThumb from './ImageThumb'
@@ -13,7 +13,7 @@ interface Props {
   book: Unit
   state: AppState
   onBack: () => void
-  onOpenChapter: (lessonIdx: number) => void
+  onOpenChapter: (chapterId: string) => void
   onEdit: () => void
 }
 
@@ -21,18 +21,14 @@ export default function BookPage({ course, book, state, onBack, onOpenChapter, o
   const [tab, setTab] = useState<'chapters' | 'content'>('chapters')
   const [audioOk, setAudioOk] = useState<Set<string>>(new Set())
 
-  const done = state.completed[book.id] ?? 0
-  const nextIdx = Math.min(done, book.lessons.length - 1)
-  const logDays = bookLogDays(course.id, book.id, book.lessons.length)
+  const chapterIds = book.lessons.map((l) => l.id)
+  const done = doneChapterCount(state, chapterIds)
+  // "이어서" 버튼이 가리킬 챕터 = 아직 완료 표시가 없는 첫 챕터
+  const nextChapter = book.lessons.find((l) => !isChapterDone(state, l.id)) ?? book.lessons[0]
+  const logDays = bookLogDays(chapterIds)
 
   useEffect(() => {
-    const files: string[] = []
-    for (const l of book.lessons)
-      for (const s of lessonSections(l)) {
-        if (s.passageAudio) files.push(s.passageAudio)
-        for (const x of [...s.passages, ...s.words, ...s.grammar.flatMap((g) => g.examples ?? [])])
-          if (x.audio) files.push(x.audio)
-      }
+    const files = bookAudioFiles(book)
     if (files.length > 0) checkAudioFiles(course.id, files).then(setAudioOk)
   }, [book, course.id])
 
@@ -70,9 +66,11 @@ export default function BookPage({ course, book, state, onBack, onOpenChapter, o
               </div>
             </div>
 
-            <button className="pill primary big" onClick={() => onOpenChapter(nextIdx)}>
-              {done === 0 ? '📖 학습 시작하기' : done >= book.lessons.length ? '💮 다시 보기' : `⭐️ 이어서 — ${book.lessons[nextIdx].title}`}
-            </button>
+            {nextChapter && (
+              <button className="pill primary big" onClick={() => onOpenChapter(nextChapter.id)}>
+                {done === 0 ? '📖 학습 시작하기' : done >= book.lessons.length ? '💮 다시 보기' : `⭐️ 이어서 — ${nextChapter.title}`}
+              </button>
+            )}
 
             <div className="book-tabs">
               <button className={`pill ${tab === 'chapters' ? 'active' : ''}`} onClick={() => setTab('chapters')}>📑 챕터</button>
@@ -81,13 +79,12 @@ export default function BookPage({ course, book, state, onBack, onOpenChapter, o
 
             {tab === 'chapters' ? (
               <div className="chapter-list">
-                {book.lessons.map((lesson, li) => {
-                  const isDone = li < done
-                  const isNext = li === done
-                  const secs = lessonSections(lesson)
-                  const wc = secs.reduce((n, s) => n + s.words.length, 0)
+                {book.lessons.map((lesson) => {
+                  const isDone = isChapterDone(state, lesson.id)
+                  const isNext = lesson.id === nextChapter?.id && !isDone
+                  const wc = lesson.sections.reduce((n, s) => n + s.words.length, 0)
                   return (
-                    <button key={li} className={`node ${isDone ? 'done' : ''} ${isNext ? 'next' : ''}`} onClick={() => onOpenChapter(li)}>
+                    <button key={lesson.id} className={`node ${isDone ? 'done' : ''} ${isNext ? 'next' : ''}`} onClick={() => onOpenChapter(lesson.id)}>
                       <span className="node-icon">{isDone ? '🌸' : isNext ? '⭐️' : '📄'}</span>
                       <span className="node-label">
                         {lesson.title}
@@ -100,11 +97,11 @@ export default function BookPage({ course, book, state, onBack, onOpenChapter, o
               </div>
             ) : (
               <div className="content-view">
-                {book.lessons.map((lesson, li) => (
-                  <div key={li} className="content-chapter">
+                {book.lessons.map((lesson) => (
+                  <div key={lesson.id} className="content-chapter">
                     <h3 className="content-ch-title">📑 {lesson.title}</h3>
-                    {lessonSections(lesson).map((section, si) => (
-                      <div key={si} className="content-section">
+                    {lesson.sections.map((section) => (
+                      <div key={section.id} className="content-section">
                         {section.title && <div className="content-sec-title">📂 {section.title}</div>}
 
                         {(section.images ?? []).length > 0 && (
@@ -131,8 +128,8 @@ export default function BookPage({ course, book, state, onBack, onOpenChapter, o
                         {section.passages.length > 0 && (
                           <>
                             <div className="content-kind">🔎 문장별 보기</div>
-                            {section.passages.map((p, i) => (
-                              <div key={i} className="vrow">
+                            {section.passages.map((p) => (
+                              <div key={p.id} className="vrow">
                                 <Speaker file={p.audio} />
                                 <div className="vtext">
                                   {p.reading && <span className="vreading">{p.reading}</span>}
@@ -147,8 +144,8 @@ export default function BookPage({ course, book, state, onBack, onOpenChapter, o
                         {section.words.length > 0 && (
                           <>
                             <div className="content-kind">🔤 새단어</div>
-                            {section.words.map((w, i) => (
-                              <div key={i} className="vrow">
+                            {section.words.map((w) => (
+                              <div key={w.id} className="vrow">
                                 <Speaker file={w.audio} />
                                 <div className="vtext">
                                   {w.reading && <span className="vreading">{w.reading}</span>}
@@ -163,12 +160,12 @@ export default function BookPage({ course, book, state, onBack, onOpenChapter, o
                         {section.grammar.length > 0 && (
                           <>
                             <div className="content-kind">📐 문법</div>
-                            {section.grammar.map((g, i) => (
-                              <div key={i} className="grammar-box">
+                            {section.grammar.map((g) => (
+                              <div key={g.id} className="grammar-box">
                                 <div className="grammar-point">{g.point}</div>
                                 {g.explanation && <div className="grammar-explain">{g.explanation}</div>}
-                                {(g.examples ?? []).map((ex, ei) => (
-                                  <div key={ei} className="vrow example">
+                                {g.examples.map((ex) => (
+                                  <div key={ex.id} className="vrow example">
                                     <Speaker file={ex.audio} />
                                     <div className="vtext"><span className="vmain">{ex.text}</span></div>
                                     <div className="vmean">{ex.meaning}</div>

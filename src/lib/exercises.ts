@@ -1,6 +1,5 @@
-import type { Course, Exercise, Sentence, Unit, Word } from '../types'
-import { srsKey } from './srs'
-import { lessonSentences, lessonWords } from './lessonModel'
+import type { Course, Exercise, Lesson, Sentence, Unit, Word } from '../types'
+import { bookWords, lessonSentences, lessonWords } from './lessonModel'
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
@@ -57,6 +56,7 @@ function buildPools(unit: Unit, course: Course): Pools {
     for (const l of u.lessons) {
       for (const w of lessonWords(l)) if (!words.some((x) => x.text === w.text)) words.push(w)
       for (const s of lessonSentences(l)) {
+        if (!s.text) continue
         sentenceTokens(s).forEach((t) => tokens.add(t))
         koTokens(s.meaning).forEach((t) => koWords.add(t))
       }
@@ -93,14 +93,14 @@ function bankTiles(answer: string[], distractors: string[]): string[] {
 export function buildLessonExercises(
   course: Course,
   unit: Unit,
-  lessonIdx: number,
+  lesson: Lesson,
   audioOk: Set<string>
 ): Exercise[] {
-  const lesson = unit.lessons[lessonIdx]
+  const lessonIdx = Math.max(0, unit.lessons.findIndex((l) => l.id === lesson.id))
   const pools = buildPools(unit, course)
   const ex: Exercise[] = []
-  const lWords = lessonWords(lesson)
-  const lSentences = lessonSentences(lesson)
+  const lWords = lessonWords(lesson).filter((w) => w.text && w.meaning)
+  const lSentences = lessonSentences(lesson).filter((s) => s.text)
   const words = shuffle(lWords)
   const later = lessonIdx >= Math.ceil(unit.lessons.length / 2) // 유닛 후반?
 
@@ -114,7 +114,7 @@ export function buildLessonExercises(
       promptAudio: w.audio && audioOk.has(w.audio) ? w.audio : undefined,
       options: meaningOptions(w, pools.words),
       answer: w.meaning,
-      srsKeys: [srsKey(course.id, w.text)],
+      srsKeys: [w.id],
     })
   }
 
@@ -125,7 +125,7 @@ export function buildLessonExercises(
       kind: 'match',
       question: '짝을 맞춰 보세요',
       pairs: matchWords.map((w) => ({ a: w.text, b: w.meaning })),
-      srsKeys: matchWords.map((w) => srsKey(course.id, w.text)),
+      srsKeys: matchWords.map((w) => w.id),
     })
   }
 
@@ -137,7 +137,7 @@ export function buildLessonExercises(
       prompt: w.meaning,
       options: textOptions(w, pools.words),
       answer: w.text,
-      srsKeys: [srsKey(course.id, w.text)],
+      srsKeys: [w.id],
     })
   }
 
@@ -145,9 +145,9 @@ export function buildLessonExercises(
   const sentences = shuffle(lSentences.filter((s) => s.meaning.trim()))
   sentences.forEach((s, i) => {
     const tokens = sentenceTokens(s)
-    const sKeys = lWords
-      .filter((w) => s.text.includes(w.text))
-      .map((w) => srsKey(course.id, w.text))
+    // 문장도 자기 id로 SRS 카드를 갖는다. v1에서는 포함된 단어의 카드를 빌려 썼는데,
+    // 그러면 문장 자체의 숙련도는 어디에도 남지 않았다.
+    const sKeys = [s.id]
     if (i % 2 === 0) {
       // 원문 → 타일로 조립
       ex.push({
@@ -199,7 +199,7 @@ export function buildLessonExercises(
       audioOnly: true,
       options: textOptions(w, pools.words),
       answer: w.text,
-      srsKeys: [srsKey(course.id, w.text)],
+      srsKeys: [w.id],
     })
   }
   // 듣고 조립 (mp3 있는 문장)
@@ -214,7 +214,7 @@ export function buildLessonExercises(
       audioOnly: true,
       tiles: bankTiles(tokens, pools.tokens),
       answer: tokens,
-      srsKeys: [],
+      srsKeys: [s.id],
     })
   }
 
@@ -227,7 +227,7 @@ export function buildLessonExercises(
           question: `"${w.meaning}" 을(를) 영어로 써 보세요`,
           prompt: w.meaning,
           answer: w.text,
-          srsKeys: [srsKey(course.id, w.text)],
+          srsKeys: [w.id],
         })
       } else {
         ex.push({
@@ -236,7 +236,7 @@ export function buildLessonExercises(
           prompt: w.text,
           promptReading: w.reading,
           answer: w.meaning,
-          srsKeys: [srsKey(course.id, w.text)],
+          srsKeys: [w.id],
         })
       }
     }
@@ -256,7 +256,7 @@ export function buildReviewExercises(course: Course, due: Word[], allWords: Word
         question: `"${w.meaning}" 을(를) 영어로 써 보세요`,
         prompt: w.meaning,
         answer: w.text,
-        srsKeys: [srsKey(course.id, w.text)],
+        srsKeys: [w.id],
       })
     } else if (i % 3 === 1) {
       ex.push({
@@ -265,7 +265,7 @@ export function buildReviewExercises(course: Course, due: Word[], allWords: Word
         prompt: w.meaning,
         options: textOptions(w, allWords),
         answer: w.text,
-        srsKeys: [srsKey(course.id, w.text)],
+        srsKeys: [w.id],
       })
     } else {
       ex.push({
@@ -275,7 +275,7 @@ export function buildReviewExercises(course: Course, due: Word[], allWords: Word
         promptReading: w.reading,
         options: meaningOptions(w, allWords),
         answer: w.meaning,
-        srsKeys: [srsKey(course.id, w.text)],
+        srsKeys: [w.id],
       })
     }
   })
@@ -286,7 +286,7 @@ export function buildReviewExercises(course: Course, due: Word[], allWords: Word
       kind: 'match',
       question: '짝을 맞춰 보세요',
       pairs: m.map((w) => ({ a: w.text, b: w.meaning })),
-      srsKeys: m.map((w) => srsKey(course.id, w.text)),
+      srsKeys: m.map((w) => w.id),
     })
   }
   return ex
@@ -295,7 +295,6 @@ export function buildReviewExercises(course: Course, due: Word[], allWords: Word
 export function courseAllWords(course: Course): Word[] {
   const all: Word[] = []
   for (const u of course.units)
-    for (const l of u.lessons)
-      for (const w of lessonWords(l)) if (!all.some((x) => x.text === w.text)) all.push(w)
+    for (const w of bookWords(u)) if (w.text && !all.some((x) => x.text === w.text)) all.push(w)
   return all
 }

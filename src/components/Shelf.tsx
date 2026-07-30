@@ -1,5 +1,5 @@
 import type { Course } from '../types'
-import type { AppState } from '../lib/storage'
+import { doneChapterCount, type AppState } from '../lib/storage'
 import { courses } from '../data'
 import { dueWords } from '../lib/srs'
 import { isCustomBook } from '../lib/books'
@@ -76,7 +76,7 @@ export default function Shelf({ state, setState, course, onOpenBook, onNewBook, 
         {/* 책 = .EXE 창들 */}
         <div className="win-grid">
           {course.units.map((book, i) => {
-            const done = state.completed[book.id] ?? 0
+            const done = doneChapterCount(state, book.lessons.map((l) => l.id))
             const total = book.lessons.length
             const pct = total > 0 ? Math.round((done / total) * 100) : 0
             const custom = isCustomBook(course.id, book.id)

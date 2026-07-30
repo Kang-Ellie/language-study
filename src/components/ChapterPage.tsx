@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Course, Unit } from '../types'
-import { lessonSections } from '../lib/lessonModel'
+import type { Course, Lesson, Unit } from '../types'
+import { lessonAudioFiles } from '../lib/lessonModel'
 import { checkAudioFiles, playMp3 } from '../lib/audio'
 import { today } from '../lib/storage'
 import { addLogEntry, deleteLogEntry, loadLog, logNamespace, type LogEntry } from '../lib/studyLog'
@@ -11,7 +11,7 @@ import Taskbar from './Taskbar'
 interface Props {
   course: Course
   book: Unit
-  lessonIdx: number
+  chapter: Lesson
   isDone: boolean
   onBack: () => void
   onQuiz: () => void
@@ -19,30 +19,27 @@ interface Props {
   onEdit: () => void
 }
 
-export default function ChapterPage({ course, book, lessonIdx, isDone, onBack, onQuiz, onMarkDone, onEdit }: Props) {
-  const lesson = book.lessons[lessonIdx]
-  const sections = lessonSections(lesson)
+export default function ChapterPage({ course, book, chapter, isDone, onBack, onQuiz, onMarkDone, onEdit }: Props) {
+  const lesson = chapter
+  const sections = chapter.sections
+  const chapterNo = book.lessons.findIndex((l) => l.id === chapter.id) + 1
   const [audioOk, setAudioOk] = useState<Set<string>>(new Set())
   const [log, setLog] = useState<LogEntry[]>([])
   const [showForm, setShowForm] = useState(false)
 
   useEffect(() => {
-    const files: string[] = []
-    for (const s of sections) {
-      if (s.passageAudio) files.push(s.passageAudio)
-      for (const x of [...s.passages, ...s.words, ...s.grammar.flatMap((g) => g.examples ?? [])]) if (x.audio) files.push(x.audio)
-    }
+    const files = lessonAudioFiles(chapter)
     if (files.length > 0) checkAudioFiles(course.id, files).then(setAudioOk)
     refreshLog()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [book.id, lessonIdx])
+  }, [book.id, chapter.id])
 
   function refreshLog() {
-    setLog(loadLog(course.id, book.id, lessonIdx))
+    setLog(loadLog(chapter.id))
   }
 
   async function saveEntry(input: { date: string; note?: string; audioBlob?: Blob; audioExt?: string; imageBlob?: Blob }) {
-    await addLogEntry(course.id, book.id, lessonIdx, input)
+    await addLogEntry(course.id, chapter.id, input)
     refreshLog()
     setShowForm(false)
   }
@@ -66,7 +63,7 @@ export default function ChapterPage({ course, book, lessonIdx, isDone, onBack, o
           </div>
           <div className="url-bar">
             <span className="url-back" onClick={onBack}>‹</span>
-            <span className="url-text">shelf://{course.id}/{book.id}/{lessonIdx + 1}</span>
+            <span className="url-text">shelf://{course.id}/{book.id}/{chapterNo}</span>
             <button className="url-edit" onClick={onEdit}>✏️ 편집</button>
           </div>
 
@@ -74,8 +71,8 @@ export default function ChapterPage({ course, book, lessonIdx, isDone, onBack, o
             <h1 className="book-page-title">📑 {lesson.title}</h1>
             {lesson.context && <p className="chapter-context">{lesson.context}</p>}
 
-            {sections.map((section, si) => (
-              <div key={si} className="study-section">
+            {sections.map((section) => (
+              <div key={section.id} className="study-section">
                 {section.title && <div className="content-sec-title">📂 {section.title}</div>}
 
                 {(section.images ?? []).length > 0 && (
@@ -102,8 +99,8 @@ export default function ChapterPage({ course, book, lessonIdx, isDone, onBack, o
                 {section.passages.length > 0 && (
                   <>
                     <div className="content-kind">🔎 문장별 보기 (퀴즈·개별듣기용)</div>
-                    {section.passages.map((p, i) => (
-                      <div key={i} className="vrow">
+                    {section.passages.map((p) => (
+                      <div key={p.id} className="vrow">
                         <Speaker file={p.audio} label="선생님 녹음" />
                         <div className="vtext">
                           {p.reading && <span className="vreading">{p.reading}</span>}
@@ -118,8 +115,8 @@ export default function ChapterPage({ course, book, lessonIdx, isDone, onBack, o
                 {section.words.length > 0 && (
                   <>
                     <div className="content-kind">🔤 새단어</div>
-                    {section.words.map((w, i) => (
-                      <div key={i} className="vrow">
+                    {section.words.map((w) => (
+                      <div key={w.id} className="vrow">
                         <Speaker file={w.audio} />
                         <div className="vtext">
                           {w.reading && <span className="vreading">{w.reading}</span>}
@@ -134,12 +131,12 @@ export default function ChapterPage({ course, book, lessonIdx, isDone, onBack, o
                 {section.grammar.length > 0 && (
                   <>
                     <div className="content-kind">📐 문법</div>
-                    {section.grammar.map((g, i) => (
-                      <div key={i} className="grammar-box">
+                    {section.grammar.map((g) => (
+                      <div key={g.id} className="grammar-box">
                         <div className="grammar-point">{g.point}</div>
                         {g.explanation && <div className="grammar-explain">{g.explanation}</div>}
-                        {(g.examples ?? []).map((ex, ei) => (
-                          <div key={ei} className="vrow example">
+                        {g.examples.map((ex) => (
+                          <div key={ex.id} className="vrow example">
                             <Speaker file={ex.audio} />
                             <div className="vtext"><span className="vmain">{ex.text}</span></div>
                             <div className="vmean">{ex.meaning}</div>
@@ -174,7 +171,7 @@ export default function ChapterPage({ course, book, lessonIdx, isDone, onBack, o
                 <div key={entry.id} className="log-card">
                   <div className="log-card-top">
                     <span className="log-date">🗓 {entry.date}</span>
-                    <button className="mini-del" onClick={() => { deleteLogEntry(course.id, book.id, lessonIdx, entry.id); refreshLog() }}>🗑</button>
+                    <button className="mini-del" onClick={() => { deleteLogEntry(chapter.id, entry.id); refreshLog() }}>🗑</button>
                   </div>
                   {entry.audioFile && (
                     <button className="pill soft" onClick={() => playMp3(logNamespace(course.id), entry.audioFile!)}>🔊 내 녹음 듣기</button>

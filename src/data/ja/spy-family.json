@@ -7,38 +7,176 @@
   "sourceTitle": "SPY×FAMILY",
   "lessons": [
     {
+      "id": "ja-spy-family/c1",
+      "order": 0,
       "title": "포저 가족",
       "context": "가족 모두에게 비밀이 있다",
-      "words": [
-        { "text": "家族", "reading": "かぞく", "meaning": "가족" },
-        { "text": "父", "reading": "ちち", "meaning": "아버지" },
-        { "text": "母", "reading": "はは", "meaning": "어머니" },
-        { "text": "娘", "reading": "むすめ", "meaning": "딸" },
-        { "text": "秘密", "reading": "ひみつ", "meaning": "비밀" },
-        { "text": "任務", "reading": "にんむ", "meaning": "임무" },
-        { "text": "大好き", "reading": "だいすき", "meaning": "정말 좋아함" }
-      ],
-      "sentences": [
-        { "text": "これは 秘密 です。", "reading": "これは ひみつ です", "meaning": "이건 비밀이에요", "tokens": ["これは", "秘密", "です"] },
-        { "text": "家族が 大好き！", "reading": "かぞくが だいすき", "meaning": "가족이 정말 좋아!", "tokens": ["家族が", "大好き"] },
-        { "text": "学校へ 行くよ。", "reading": "がっこうへ いくよ", "meaning": "학교에 가자", "tokens": ["学校へ", "行くよ"] }
+      "sections": [
+        {
+          "id": "ja-spy-family/c1/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "ja-spy-family/c1/s1/p1",
+              "text": "これは 秘密 です。",
+              "reading": "これは ひみつ です",
+              "meaning": "이건 비밀이에요",
+              "tokens": [
+                "これは",
+                "秘密",
+                "です"
+              ]
+            },
+            {
+              "id": "ja-spy-family/c1/s1/p2",
+              "text": "家族が 大好き！",
+              "reading": "かぞくが だいすき",
+              "meaning": "가족이 정말 좋아!",
+              "tokens": [
+                "家族が",
+                "大好き"
+              ]
+            },
+            {
+              "id": "ja-spy-family/c1/s1/p3",
+              "text": "学校へ 行くよ。",
+              "reading": "がっこうへ いくよ",
+              "meaning": "학교에 가자",
+              "tokens": [
+                "学校へ",
+                "行くよ"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "ja-spy-family/c1/s1/w1",
+              "text": "家族",
+              "reading": "かぞく",
+              "meaning": "가족"
+            },
+            {
+              "id": "ja-spy-family/c1/s1/w2",
+              "text": "父",
+              "reading": "ちち",
+              "meaning": "아버지"
+            },
+            {
+              "id": "ja-spy-family/c1/s1/w3",
+              "text": "母",
+              "reading": "はは",
+              "meaning": "어머니"
+            },
+            {
+              "id": "ja-spy-family/c1/s1/w4",
+              "text": "娘",
+              "reading": "むすめ",
+              "meaning": "딸"
+            },
+            {
+              "id": "ja-spy-family/c1/s1/w5",
+              "text": "秘密",
+              "reading": "ひみつ",
+              "meaning": "비밀"
+            },
+            {
+              "id": "ja-spy-family/c1/s1/w6",
+              "text": "任務",
+              "reading": "にんむ",
+              "meaning": "임무"
+            },
+            {
+              "id": "ja-spy-family/c1/s1/w7",
+              "text": "大好き",
+              "reading": "だいすき",
+              "meaning": "정말 좋아함"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "ja-spy-family/c2",
+      "order": 1,
       "title": "아냐의 하루",
       "context": "두근두근 일상 회화",
-      "words": [
-        { "text": "すごい", "meaning": "대단하다" },
-        { "text": "大丈夫", "reading": "だいじょうぶ", "meaning": "괜찮다" },
-        { "text": "頑張る", "reading": "がんばる", "meaning": "힘내다, 열심히 하다" },
-        { "text": "楽しい", "reading": "たのしい", "meaning": "즐겁다" },
-        { "text": "一緒に", "reading": "いっしょに", "meaning": "함께" },
-        { "text": "わくわく", "meaning": "두근두근" }
-      ],
-      "sentences": [
-        { "text": "大丈夫 ですか。", "reading": "だいじょうぶ ですか", "meaning": "괜찮아요?", "tokens": ["大丈夫", "ですか"] },
-        { "text": "一緒に 頑張ろう！", "reading": "いっしょに がんばろう", "meaning": "같이 힘내자!", "tokens": ["一緒に", "頑張ろう"] },
-        { "text": "今日は 楽しい！", "reading": "きょうは たのしい", "meaning": "오늘은 즐거워!", "tokens": ["今日は", "楽しい"] }
+      "sections": [
+        {
+          "id": "ja-spy-family/c2/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "ja-spy-family/c2/s1/p1",
+              "text": "大丈夫 ですか。",
+              "reading": "だいじょうぶ ですか",
+              "meaning": "괜찮아요?",
+              "tokens": [
+                "大丈夫",
+                "ですか"
+              ]
+            },
+            {
+              "id": "ja-spy-family/c2/s1/p2",
+              "text": "一緒に 頑張ろう！",
+              "reading": "いっしょに がんばろう",
+              "meaning": "같이 힘내자!",
+              "tokens": [
+                "一緒に",
+                "頑張ろう"
+              ]
+            },
+            {
+              "id": "ja-spy-family/c2/s1/p3",
+              "text": "今日は 楽しい！",
+              "reading": "きょうは たのしい",
+              "meaning": "오늘은 즐거워!",
+              "tokens": [
+                "今日は",
+                "楽しい"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "ja-spy-family/c2/s1/w1",
+              "text": "すごい",
+              "meaning": "대단하다"
+            },
+            {
+              "id": "ja-spy-family/c2/s1/w2",
+              "text": "大丈夫",
+              "reading": "だいじょうぶ",
+              "meaning": "괜찮다"
+            },
+            {
+              "id": "ja-spy-family/c2/s1/w3",
+              "text": "頑張る",
+              "reading": "がんばる",
+              "meaning": "힘내다, 열심히 하다"
+            },
+            {
+              "id": "ja-spy-family/c2/s1/w4",
+              "text": "楽しい",
+              "reading": "たのしい",
+              "meaning": "즐겁다"
+            },
+            {
+              "id": "ja-spy-family/c2/s1/w5",
+              "text": "一緒に",
+              "reading": "いっしょに",
+              "meaning": "함께"
+            },
+            {
+              "id": "ja-spy-family/c2/s1/w6",
+              "text": "わくわく",
+              "meaning": "두근두근"
+            }
+          ],
+          "grammar": []
+        }
       ]
     }
   ]

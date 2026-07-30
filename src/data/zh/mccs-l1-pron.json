@@ -7,52 +7,255 @@
   "sourceTitle": "맛있는 중국어 Level 1: 첫걸음",
   "lessons": [
     {
+      "id": "zh-mccs-l1-pron/c1",
+      "order": 0,
       "title": "1과 — 你好吗？",
       "context": "안부를 묻고 답하기",
-      "words": [
-        { "text": "你好吗", "reading": "nǐ hǎo ma", "meaning": "잘 지내요?", "audio": "mccs/l1-ch01-nihaoma.mp3" },
-        { "text": "呢", "reading": "ne", "meaning": "~는요? (되물음)" },
-        { "text": "很好", "reading": "hěn hǎo", "meaning": "아주 좋다" },
-        { "text": "还可以", "reading": "hái kěyǐ", "meaning": "그럭저럭 괜찮다" },
-        { "text": "最近", "reading": "zuìjìn", "meaning": "요즘" }
-      ],
-      "sentences": [
-        { "text": "你最近好吗？", "reading": "nǐ zuìjìn hǎo ma", "meaning": "요즘 잘 지내요?", "tokens": ["你", "最近", "好", "吗"], "audio": "mccs/l1-ch01-s1.mp3" },
-        { "text": "我很好，你呢？", "reading": "wǒ hěn hǎo, nǐ ne", "meaning": "나는 아주 좋아요 너는요?", "tokens": ["我", "很好", "你", "呢"] },
-        { "text": "我也很好。", "reading": "wǒ yě hěn hǎo", "meaning": "나도 아주 좋아요", "tokens": ["我", "也", "很好"] }
+      "sections": [
+        {
+          "id": "zh-mccs-l1-pron/c1/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "zh-mccs-l1-pron/c1/s1/p1",
+              "text": "你最近好吗？",
+              "reading": "nǐ zuìjìn hǎo ma",
+              "meaning": "요즘 잘 지내요?",
+              "audio": "mccs/l1-ch01-s1.mp3",
+              "tokens": [
+                "你",
+                "最近",
+                "好",
+                "吗"
+              ]
+            },
+            {
+              "id": "zh-mccs-l1-pron/c1/s1/p2",
+              "text": "我很好，你呢？",
+              "reading": "wǒ hěn hǎo, nǐ ne",
+              "meaning": "나는 아주 좋아요 너는요?",
+              "tokens": [
+                "我",
+                "很好",
+                "你",
+                "呢"
+              ]
+            },
+            {
+              "id": "zh-mccs-l1-pron/c1/s1/p3",
+              "text": "我也很好。",
+              "reading": "wǒ yě hěn hǎo",
+              "meaning": "나도 아주 좋아요",
+              "tokens": [
+                "我",
+                "也",
+                "很好"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "zh-mccs-l1-pron/c1/s1/w1",
+              "text": "你好吗",
+              "reading": "nǐ hǎo ma",
+              "meaning": "잘 지내요?",
+              "audio": "mccs/l1-ch01-nihaoma.mp3"
+            },
+            {
+              "id": "zh-mccs-l1-pron/c1/s1/w2",
+              "text": "呢",
+              "reading": "ne",
+              "meaning": "~는요? (되물음)"
+            },
+            {
+              "id": "zh-mccs-l1-pron/c1/s1/w3",
+              "text": "很好",
+              "reading": "hěn hǎo",
+              "meaning": "아주 좋다"
+            },
+            {
+              "id": "zh-mccs-l1-pron/c1/s1/w4",
+              "text": "还可以",
+              "reading": "hái kěyǐ",
+              "meaning": "그럭저럭 괜찮다"
+            },
+            {
+              "id": "zh-mccs-l1-pron/c1/s1/w5",
+              "text": "最近",
+              "reading": "zuìjìn",
+              "meaning": "요즘"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "zh-mccs-l1-pron/c2",
+      "order": 1,
       "title": "2과 — 谢谢！",
       "context": "감사와 사과 주고받기",
-      "words": [
-        { "text": "请", "reading": "qǐng", "meaning": "~해 주세요" },
-        { "text": "坐", "reading": "zuò", "meaning": "앉다" },
-        { "text": "喝", "reading": "hē", "meaning": "마시다" },
-        { "text": "茶", "reading": "chá", "meaning": "차 (마시는)" },
-        { "text": "客气", "reading": "kèqi", "meaning": "사양하다, 예의 차리다" }
-      ],
-      "sentences": [
-        { "text": "请坐。", "reading": "qǐng zuò", "meaning": "앉으세요", "tokens": ["请", "坐"] },
-        { "text": "请喝茶。", "reading": "qǐng hē chá", "meaning": "차 드세요", "tokens": ["请", "喝", "茶"], "audio": "mccs/l1-ch02-s1.mp3" },
-        { "text": "谢谢！— 不客气。", "reading": "xiè xie — bú kè qi", "meaning": "고마워요 — 천만에요", "tokens": ["谢谢", "不客气"] }
+      "sections": [
+        {
+          "id": "zh-mccs-l1-pron/c2/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "zh-mccs-l1-pron/c2/s1/p1",
+              "text": "请坐。",
+              "reading": "qǐng zuò",
+              "meaning": "앉으세요",
+              "tokens": [
+                "请",
+                "坐"
+              ]
+            },
+            {
+              "id": "zh-mccs-l1-pron/c2/s1/p2",
+              "text": "请喝茶。",
+              "reading": "qǐng hē chá",
+              "meaning": "차 드세요",
+              "audio": "mccs/l1-ch02-s1.mp3",
+              "tokens": [
+                "请",
+                "喝",
+                "茶"
+              ]
+            },
+            {
+              "id": "zh-mccs-l1-pron/c2/s1/p3",
+              "text": "谢谢！— 不客气。",
+              "reading": "xiè xie — bú kè qi",
+              "meaning": "고마워요 — 천만에요",
+              "tokens": [
+                "谢谢",
+                "不客气"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "zh-mccs-l1-pron/c2/s1/w1",
+              "text": "请",
+              "reading": "qǐng",
+              "meaning": "~해 주세요"
+            },
+            {
+              "id": "zh-mccs-l1-pron/c2/s1/w2",
+              "text": "坐",
+              "reading": "zuò",
+              "meaning": "앉다"
+            },
+            {
+              "id": "zh-mccs-l1-pron/c2/s1/w3",
+              "text": "喝",
+              "reading": "hē",
+              "meaning": "마시다"
+            },
+            {
+              "id": "zh-mccs-l1-pron/c2/s1/w4",
+              "text": "茶",
+              "reading": "chá",
+              "meaning": "차 (마시는)"
+            },
+            {
+              "id": "zh-mccs-l1-pron/c2/s1/w5",
+              "text": "客气",
+              "reading": "kèqi",
+              "meaning": "사양하다, 예의 차리다"
+            }
+          ],
+          "grammar": []
+        }
       ]
     },
     {
+      "id": "zh-mccs-l1-pron/c3",
+      "order": 2,
       "title": "3과 — 교실 표현",
       "context": "듣고, 말하고, 읽고, 쓰기",
-      "words": [
-        { "text": "听", "reading": "tīng", "meaning": "듣다" },
-        { "text": "说", "reading": "shuō", "meaning": "말하다" },
-        { "text": "读", "reading": "dú", "meaning": "읽다" },
-        { "text": "写", "reading": "xiě", "meaning": "쓰다" },
-        { "text": "跟", "reading": "gēn", "meaning": "~를 따라" },
-        { "text": "汉语", "reading": "Hànyǔ", "meaning": "중국어" }
-      ],
-      "sentences": [
-        { "text": "请听。", "reading": "qǐng tīng", "meaning": "들어 보세요", "tokens": ["请", "听"] },
-        { "text": "请跟我读。", "reading": "qǐng gēn wǒ dú", "meaning": "나를 따라 읽으세요", "tokens": ["请", "跟", "我", "读"] },
-        { "text": "我说汉语。", "reading": "wǒ shuō Hànyǔ", "meaning": "나는 중국어를 말해요", "tokens": ["我", "说", "汉语"] }
+      "sections": [
+        {
+          "id": "zh-mccs-l1-pron/c3/s1",
+          "order": 0,
+          "title": "본문",
+          "passages": [
+            {
+              "id": "zh-mccs-l1-pron/c3/s1/p1",
+              "text": "请听。",
+              "reading": "qǐng tīng",
+              "meaning": "들어 보세요",
+              "tokens": [
+                "请",
+                "听"
+              ]
+            },
+            {
+              "id": "zh-mccs-l1-pron/c3/s1/p2",
+              "text": "请跟我读。",
+              "reading": "qǐng gēn wǒ dú",
+              "meaning": "나를 따라 읽으세요",
+              "tokens": [
+                "请",
+                "跟",
+                "我",
+                "读"
+              ]
+            },
+            {
+              "id": "zh-mccs-l1-pron/c3/s1/p3",
+              "text": "我说汉语。",
+              "reading": "wǒ shuō Hànyǔ",
+              "meaning": "나는 중국어를 말해요",
+              "tokens": [
+                "我",
+                "说",
+                "汉语"
+              ]
+            }
+          ],
+          "words": [
+            {
+              "id": "zh-mccs-l1-pron/c3/s1/w1",
+              "text": "听",
+              "reading": "tīng",
+              "meaning": "듣다"
+            },
+            {
+              "id": "zh-mccs-l1-pron/c3/s1/w2",
+              "text": "说",
+              "reading": "shuō",
+              "meaning": "말하다"
+            },
+            {
+              "id": "zh-mccs-l1-pron/c3/s1/w3",
+              "text": "读",
+              "reading": "dú",
+              "meaning": "읽다"
+            },
+            {
+              "id": "zh-mccs-l1-pron/c3/s1/w4",
+              "text": "写",
+              "reading": "xiě",
+              "meaning": "쓰다"
+            },
+            {
+              "id": "zh-mccs-l1-pron/c3/s1/w5",
+              "text": "跟",
+              "reading": "gēn",
+              "meaning": "~를 따라"
+            },
+            {
+              "id": "zh-mccs-l1-pron/c3/s1/w6",
+              "text": "汉语",
+              "reading": "Hànyǔ",
+              "meaning": "중국어"
+            }
+          ],
+          "grammar": []
+        }
       ]
     }
   ]
