@@ -2,6 +2,8 @@
 
 > 대상 코드베이스: `/Users/kangyoungah/Desktop/language-study` (React 18 + TS + Vite 4, 완전 로컬)
 > 작성일: 2026-07-30
+> 짝 문서: [`RESTRUCTURE.md`](./RESTRUCTURE.md) — 현행 코드 실측 기준 갭 분석과 작업 순서.
+> **§0 표의 현행 상태 판정 세 곳이 실측과 다르다** (Section 계층 데이터 0건, 간격 반복이 본 퀴즈 경로에 미적용, 문장 SRS 부재). 착수 전 그 문서를 먼저 볼 것.
 
 ---
 
@@ -714,7 +716,7 @@ export function buildQuiz(course: Course, scope: QuizScope, state: AppState, opt
 
 | 단계 | 내용 | 근거 |
 |---|---|---|
-| 1 | ~~`BackupPanel` (zip export/import)~~ **완료 (2026-07-31)** | 지금 맥북이 죽으면 전부 날아간다. 다른 무엇보다 먼저. |
+| 1 | ~~`BackupPanel` (zip export/import)~~ **완료 (2026-07-30)** | 지금 맥북이 죽으면 전부 날아간다. 다른 무엇보다 먼저. |
 | 2 | id 부여 + `migrateV1toV2()` | 이후 모든 작업의 전제. 데이터가 쌓일수록 마이그레이션 비용이 커진다. |
 | 3 | `QuizScopePicker` + `collectItems` | 요청 기능 중 실제로 없는 것. 체감 효과 최대. |
 | 4 | `tokenize` 최장일치 분절 | 중국어 문장 조립 문제가 지금 사실상 못 쓸 수준. |

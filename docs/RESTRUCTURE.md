@@ -1,0 +1,281 @@
+# 재구조화 설계서 — 현행 코드 기준 갭 분석
+
+> 대상: 커밋 `9961d66` (기본 틀 작성) 시점의 실제 코드
+> 작성일: 2026-07-30
+> 짝 문서: `docs/PRD.md` (목표 스키마·엔진 명세). 이 문서는 **"지금 코드의 어디가 왜 틀렸고, 어떤 순서로 고치는가"**만 다룬다.
+
+---
+
+## 0. 요약 — 세 문장
+
+1. 요청서의 4계층(Book > Chapter > SubChapter > Item) 중 **SubChapter 계층은 타입과 UI에만 있고 데이터에는 0건**이다. 내장 12권 전부가 구형 평면 포맷이라 `lessonModel`이 매번 가짜 섹션을 지어내고 있고, 그래서 섹션 단위 진도·퀴즈가 원천적으로 불가능하다.
+2. 요청서의 핵심 요구인 **간격 반복(SRS) 가중 출제가 본 학습 경로에는 들어 있지 않다.** `buildLessonExercises`는 `shuffle()` 무작위이고, SRS는 별도 "복습" 모드에서만 쓰인다. 게다가 **문장은 SRS 카드를 아예 갖지 못해** 영원히 복습 큐에 안 들어온다.
+3. 모든 참조가 **배열 인덱스**(`lessonIdx`)와 **텍스트**(`"zh|你好"`)로 되어 있어, 챕터를 하나 끼워 넣거나 단어 뜻을 고치는 순간 녹음·필기·SRS 이력이 어긋난다. 이게 나머지 모든 작업의 선행 조건이다.
+
+---
+
+## 1. 확인된 결함 (파일:줄 근거)
+
+### 1.1 식별자 — 심각도 최상
+
+| # | 문제 | 근거 | 실제로 벌어지는 일 |
+|---|---|---|---|
+| A1 | 학습 기록이 **챕터 배열 인덱스**로 저장됨 | `studyLog.ts:33` `mapKey(courseId, bookId, lessonIdx)` | 1과 앞에 "오리엔테이션"을 끼워 넣으면 **모든 날짜의 녹음·필기 사진이 한 칸씩 밀려 다른 챕터에 붙는다.** 복구 불가. |
+| A2 | 진도가 "완료한 레슨 **개수**"(스칼라) | `storage.ts:22` `completed: Record<string, number>`, `App.tsx:52` `Math.max(cur, lessonIdx+1)` | 7과만 끝냈다고 표시하면 **1~6과가 자동으로 완료 처리**된다. 교재를 순서대로 안 나가는 스터디에선 첫날부터 깨진다. |
+| A3 | SRS 키가 **언어+텍스트** | `srs.ts:9` `` `${courseId}|${text}` `` | ① 같은 언어의 다른 책에 같은 단어가 있으면 카드를 공유한다(의도인지 불명). ② 오타를 고치면 카드가 새로 생기고 **숙련도 이력이 통째로 사라진다.** |
+| A4 | 오디오 네임스페이스가 **언어** 단위 | `audio.ts:53` `audio/${courseId}/${file}` | 책이 달라도 파일명이 같으면 충돌. 사용자가 `1.mp3`를 업로드하면 다른 책의 `1.mp3`를 덮어쓴다. |
+
+> A1~A4는 전부 "안정적 id가 없다"는 한 가지 원인의 네 가지 증상이다. **id 부여를 먼저 하지 않고 다른 기능을 얹으면, 데이터가 쌓인 만큼 마이그레이션 비용이 커진다.**
+
+### 1.2 Section 계층이 실질적으로 비어 있음 — 심각도 상
+
+```
+내장 책 12권 중 sections 사용:      0권
+                grammar 사용:      0권
+                passageText 사용:  0권
+audio 지정된 항목: 6개 / 전체 단어·문장 332개 (1.8%)
+```
+
+- `types.ts:23-33`에 `Section`이 정의돼 있고 `Editor.tsx`는 섹션을 쓰는데, **내장 데이터는 전부 `Lesson.words` / `Lesson.sentences` 평면 포맷**이다.
+- 그래서 `lessonModel.ts:10-20`이 매 호출마다 `{ title: '본문', ... }` 임시 객체를 **새로 만들어 반환**한다. 이 객체엔 id가 없고 매번 새 참조다 → **섹션 단위 진도율·섹션 단위 퀴즈·섹션 단위 로그를 붙일 대상이 존재하지 않는다.**
+- 결과적으로 지금 앱은 사실상 3계층(책 > 챕터 > 항목)이고, 요청서의 "작문/말하기/본문/핵심어휘" 구분은 **사용자가 직접 만든 책에서만** 동작한다.
+- 게다가 두 포맷이 공존해서 모든 소비자가 `lessonModel`을 거쳐야 하고, `books.ts:75-96`의 검증기는 분기를 두 벌 유지한다.
+
+**판단: 하위호환을 유지할 이유가 없다.** 내장 12권은 저장소 안의 JSON이라 일회성 스크립트로 변환 가능하고, 사용자 책은 아직 존재하지 않거나 극소량이다. 지금이 평면 포맷을 없앨 수 있는 마지막 시점이다.
+
+### 1.3 퀴즈 엔진이 "생성기"가 아니라 "대본" — 심각도 상
+
+`exercises.ts:93-246` `buildLessonExercises`는 절차적 하드코딩이다:
+
+```
+단어 4개 뜻고르기 → 짝맞추기 1회 → 역방향 2개 → 문장 전부(짝수=조립, 홀수=뜻조립)
+→ 빈칸 1개 → 듣기 2개 → (후반부면) 타이핑 2개  →  ex.slice(0, 14)
+```
+
+여기서 나오는 구체적 결함:
+
+| # | 문제 | 근거 | 영향 |
+|---|---|---|---|
+| B1 | **SRS 가중치가 본 퀴즈에 없음** | `exercises.ts:104` `shuffle(lWords)` | 요청서 §3 "정답률 낮은 것에 가중치" 요구가 **주 학습 경로에 미구현**. `buildReviewExercises`(별도 모드)만 due 순으로 정렬. |
+| B2 | **문장이 SRS 카드를 못 가짐** | `exercises.ts:147-150` (문장 문제의 `srsKeys`는 포함된 단어 키를 빌림), `exercises.ts:217` (`srsKeys: []`), `srs.ts:35-53` `dueWords()`가 단어만 스캔 | 문장은 **아무리 틀려도 복습 큐에 안 올라온다.** 듣고 조립 문제는 채점 결과가 어디에도 기록되지 않는다. |
+| B3 | 퀴즈 범위가 챕터 1개 고정 | `buildLessonExercises(course, unit, lessonIdx, ...)` | 요청서의 3단 범위(소단원/대단원/교재 전체) 중 **대단원만** 존재. |
+| B4 | 오답 보기가 무작위 | `exercises.ts:71-79` `meaningOptions`/`textOptions` | "가다 / 컴퓨터 / 3월 / 예쁘다" 식 보기가 나와 정답률만 부풀고 난이도가 없다. |
+| B5 | CJK 문장을 **글자 단위**로 분절 | `exercises.ts:28` `[...s.text.replace(...)]` | `我是韩国人` → `[我,是,韩,国,人]` 5타일. 문제가 아니라 노가다. 정답은 `[我, 是, 韩国人]`. |
+| B6 | 오답 페널티가 너무 약함 | `srs.ts:22` `Math.max(cur.level - 1, 0)` | level 5를 틀려도 4(=14일 뒤)로만 내려간다. 실제 망각과 안 맞는다. |
+| B7 | 문항 수 14개 하드코딩 | `exercises.ts:245` | 범위가 넓어져도 14개. 사용자 선택 불가. |
+
+### 1.4 상태 모델 — 심각도 중
+
+- `AppState.courseId`(`storage.ts:10`) 하나로 **앱 전체가 단일 언어 모드**다. 언어를 추가하려면 `types.ts:56`, `storage.ts:10` 두 곳의 유니온 타입을 고쳐야 한다.
+- `Course`(언어)가 `Unit`(책) 위에 있다. 요청서 모델은 **책이 언어를 갖는다**(`Book.lang`). 지금 구조로는 "언어 상관없이 오늘 복습할 것 전부"가 불가능하다.
+- `LogEntry`(`studyLog.ts:6-12`)에 오디오·이미지가 **각각 1개씩만**. 하루에 녹음 두 개를 올릴 수 없다. 또 요청서가 요구한 **"쓰기 연습 텍스트"가 별도 필드로 없고** `note` 한 칸으로 겸용된다.
+
+### 1.5 컴포넌트 — 심각도 중
+
+| 파일 | 줄 수 | 문제 |
+|---|---|---|
+| `LessonScreen.tsx` | 462 | 6종 문제 렌더 + 채점 + SRS 반영 + 하트 + 진행바가 한 파일. 듣기 유형을 제대로 넣으면 600줄을 넘는다. |
+| `Editor.tsx` | 392 | `b.lessons[li].sections![si]` 3중 인덱스 접근(`Editor.tsx:85`). id가 생기면 이 접근 방식 자체가 바뀐다. |
+| `ChapterPage.tsx` | 252 | `LogForm`이 같은 파일 안에 있고, 섹션 렌더링 4종이 인라인. |
+
+### 1.6 품질 인프라 부재 — 심각도 중
+
+- 테스트 0개, 린트 설정 0개. `package.json` 스크립트는 `dev`/`build`/`preview`뿐.
+- **하필 가장 위험한 리팩터링 대상(퀴즈 엔진)이 순수 함수 덩어리라 테스트 붙이기가 제일 쉽다.** 여기에 테스트가 없는 채로 §3을 진행하면 회귀를 못 잡는다.
+
+### 1.7 `docs/PRD.md`에서 수정이 필요한 부분
+
+기존 PRD는 방향은 맞지만 현행 파악에 세 군데 오차가 있다.
+
+- §0 표: "Book > Chapter > SubChapter 계층 — 이미 존재"로 표시했으나 **데이터 0건이라 실질 미존재**다(§1.2). 이름 매핑이 아니라 데이터 마이그레이션이 필요하다.
+- §0 표: "4지선다/단어조립/빈칸/듣기 4종 구현됨"은 맞으나, **간격 반복이 본 경로에 미적용**(B1)이라는 더 중요한 갭이 표에 없다. §3.5에 가서야 간접적으로 언급된다.
+- §4 표: 1단계 BackupPanel이 "완료 (2026-07-31)"로 적혀 있다. 코드(`backup.ts`, `zip.ts`, `BackupPanel.tsx`)는 실제로 있으니 완료는 맞지만 **날짜가 미래**다. `2026-07-30`으로 정정.
+
+---
+
+## 2. 재구조화 방향
+
+### 2.1 계층 이름과 실체를 일치시킨다
+
+| 요청서 | 현행 코드 | 목표 |
+|---|---|---|
+| Book | `Unit` (+ 상위에 `Course`=언어) | `Book` — `lang` 필드를 직접 소유. `Course` 계층 폐기 |
+| Chapter | `Lesson` | `Chapter` |
+| Sub-Chapter | `Section` (데이터 0건) | `Section` — **모든 데이터가 반드시 가짐** |
+| Study Item | `Word` \| `Sentence` (별도 타입) | `Item` — `type: 'word'\|'sentence'` 단일 타입 |
+
+이름 변경 자체가 목적이 아니다. **`Course` 폐기와 `Item` 통합**만이 실질적 변화다.
+
+- `Course` 폐기 이유: 언어가 책 위 계층이라서 언어 교차 복습이 불가능하고, 언어 추가가 타입 변경을 요구한다. `Book.lang`으로 내리면 둘 다 풀린다.
+- `Item` 통합 이유: 퀴즈 생성이 "범위 내 전체 아이템 수집 → 가중 샘플링"이라 타입이 갈리면 모든 단계가 두 벌이 된다. 지금 `exercises.ts`가 단어 경로·문장 경로를 따로 짜고 있는 이유가 이것이다. 통합하면 **문장 SRS(B2)가 자동으로 해결**된다.
+
+### 2.2 id 체계
+
+```ts
+type ItemId = string   // `${bookId}:${chapterId}:${sectionId}:${localId}`
+```
+
+- 생성은 `crypto.randomUUID()`의 앞 8자 정도로 충분(혼자 쓰는 앱, 충돌 확률 무시 가능).
+- **순서는 배열 순서가 아니라 `order: number` 필드로** 표현한다. 그래야 중간 삽입이 id를 안 건드린다.
+- SRS 키·로그 키·진도 키를 전부 이 id로 통일 → A1·A2·A3 동시 해결.
+- 오디오 네임스페이스를 `courseId` → `bookId`로 변경 → A4 해결.
+
+### 2.3 마이그레이션 (`migrateV1toV2()`)
+
+앱 부팅 시 1회 실행. 되돌릴 수 없으므로 **실행 전 자동으로 백업 zip을 하나 떨궈 놓는다**(`backup.ts` 재사용).
+
+1. `localStorage`에 `schemaVersion`이 없으면 v1으로 간주.
+2. 책: 평면 `words`/`sentences` → 단일 `Section{ title: '본문' }`으로 승격하고 전 계층에 id·order 부여.
+3. SRS: 기존 키 `"zh|你好"` → 텍스트 매칭으로 새 `ItemId`에 이어붙인다. **여러 책에 같은 단어가 있으면 가장 앞 책 하나에만 붙이고 나머지는 level 0으로 시작**(이력 분할 불가, 손실 감수).
+4. 진도: `completed[bookId] = 5` → 앞에서부터 5개 챕터를 `markedDone: true`로 전개. (스칼라→집합 변환은 정보 손실 없이 가능)
+5. 학습 로그: `mapKey`의 `lessonIdx` → 같은 위치의 `chapterId`로 치환.
+6. 내장 JSON 12개는 런타임 마이그레이션에 의존하지 말고 **파일 자체를 변환 스크립트로 한 번 고쳐 커밋한다**(`scripts/migrate-data.mjs`). 그래야 `lessonModel`의 평면 경로를 지울 수 있다.
+
+### 2.4 저장소 배치는 유지
+
+현행 배치(localStorage 3키 + IndexedDB 2스토어)는 문제없다. 백업 zip도 이미 구현돼 있다. **서버/Prisma는 "폰에서도 봐야 한다"가 실제 요구로 올라오기 전까지 도입하지 않는다** — 근거는 기존 PRD §0-(2)에 이미 정리돼 있고 그 판단은 유효하다. 목표 Prisma 스키마는 PRD §1.2에 있는 것을 그대로 쓴다.
+
+---
+
+## 3. 작업 순서
+
+각 단계는 **그 단계만 하고 멈춰도 앱이 동작하는** 단위로 잘랐다.
+
+| 단계 | 내용 | 왜 이 순서인가 | 대략 |
+|---|---|---|---|
+| **0** | vitest 도입 + `exercises.ts`/`srs.ts` 골든 테스트 (현행 출력 스냅샷) | 3~5단계는 순수 함수를 통째로 갈아엎는다. 안전망 없이 하면 회귀를 못 잡는다. 지금 순수 함수라 붙이기 제일 쉽다. | S |
+| **1** | id·order 부여 + `migrateV1toV2()` + 내장 JSON 변환 스크립트 | **A1~A4의 공통 원인.** 데이터가 쌓일수록 비용이 커지므로 최우선. | L |
+| **2** | 평면 포맷 제거 — `lessonModel`의 하위호환 경로, `books.ts` 이중 검증 삭제 | 1단계 직후에 해야 두 포맷 공존 기간이 최소화된다. | S |
+| **3** | `Course` 폐기 → `Book.lang`, `Word`/`Sentence` → `Item` 통합 | 4단계의 전제. 이걸 먼저 안 하면 퀴즈 엔진을 두 벌 짜게 된다. | M |
+| **4** | `exercises.ts` → `src/lib/quiz/` 분해 + 파이프라인화 (PRD §3) | 여기서 B1·B2·B4·B5·B6·B7이 한꺼번에 해결된다. | L |
+| **5** | `QuizScopePicker` UI + `collectItems` 범위 수집 (B3) | 4단계 엔진이 있어야 붙일 수 있다. 체감 효과 최대. | M |
+| **6** | 진도 모델 교체 — 섹션 단위 `SectionProgress`, 수동 완료와 숙달도 분리 | 1·2단계로 섹션 id가 생긴 뒤에만 가능. | M |
+| **7** | 컴포넌트 분해 (`LessonScreen`, `Editor`, `ChapterPage`) | 4·5단계를 하면서 자연스럽게 같이. 먼저 하면 두 번 고친다. | M |
+| **8** | `LogEntry` 확장 — `writing` 필드 분리, 오디오/이미지 배열화 | 독립적. 언제 해도 되지만 1단계 마이그레이션에 묻어가면 이득. | S |
+
+**1·2단계를 건너뛰고 4·5단계(퀴즈 기능)부터 하고 싶은 충동이 클 텐데, 그러면 안 된다.** 퀴즈 범위 선택은 "이 소단원"을 가리킬 id가 있어야 만들 수 있고, SRS 가중치는 안정적 카드 키가 있어야 의미가 있다. 지금 순서가 실제로 최단 경로다.
+
+---
+
+## 4. 단계별 상세 — 인터페이스 스케치
+
+### 4.1 (1단계) 타입
+
+```ts
+export type Lang = string          // 유니온 폐기. 'zh'|'en'|'ja'|'de'... 자유
+export type ItemType = 'word' | 'sentence'
+
+export interface Book {
+  id: string
+  lang: Lang                       // ← Course에서 승격
+  title: string
+  emoji: string
+  track: 'foundation' | 'media' | 'vocab'
+  sourceType?: string
+  sourceTitle?: string
+  chapters: Chapter[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Chapter {
+  id: string
+  order: number
+  title: string
+  context?: string
+  sections: Section[]              // 필수. 옵셔널 아님
+}
+
+export interface Section {
+  id: string
+  order: number
+  title: string
+  kind?: 'passage' | 'vocab' | 'grammar' | 'writing' | 'speaking' | 'listening'
+  passageText?: string
+  passageTranslation?: string
+  passageAudio?: string
+  items: Item[]                    // ← words + passages + grammar.examples 통합
+  grammar: Grammar[]               // 설명 텍스트만. 예문은 items로 이동
+  images?: string[]
+}
+
+export interface Item {
+  id: string
+  type: ItemType
+  order: number
+  text: string
+  reading?: string                 // 병음 / 후리가나 / 발음기호
+  meaning: string                  // 비면 퀴즈 제외
+  pos?: string                     // word 전용
+  example?: string                 // word 전용
+  tip?: string                     // sentence 전용
+  tokens?: string[]                // sentence 전용
+  note?: string                    // 나의 메모
+  audio?: string
+  quizEnabled?: boolean            // 기본 true
+  grammarId?: string               // 문법 예문이면 소속 표시
+}
+```
+
+문법 예문을 `Grammar.examples`에서 `Section.items`로 올리는 이유: 지금은 예문이 퀴즈에는 출제되면서(`lessonModel.ts:29-32`) SRS·진도에는 안 잡히는 **반쪽 상태**다. items로 올리고 `grammarId`로 소속만 표시하면 렌더링은 그대로 되면서 이 불일치가 사라진다.
+
+### 4.2 (1단계) SRS·진도·로그 키
+
+```ts
+export interface SrsEntry {
+  itemId: string
+  level: number                    // 0~5
+  next: string                     // yyyy-mm-dd
+  seen: number
+  wrong: number
+  lastSeen?: string
+  lastWrong?: string
+}
+
+export interface SectionProgress {
+  markedDone: boolean              // 수동 "📌 완료"
+  quizRuns: number
+  lastQuizAt?: string
+}
+
+export interface AppState {
+  // xp / streak / hearts / dailyGoal / soundOn 은 현행 유지
+  schemaVersion: 2
+  srs: Record<string /* ItemId */, SrsEntry>
+  progress: Record<string /* sectionId */, SectionProgress>
+  // completed: Record<string, number> ← 삭제 (A2)
+  // courseId ← 삭제, 대신 lastBookId: string
+}
+```
+
+진도율은 **저장하지 않고 조회 시 계산**한다. 저장하면 아이템 추가·삭제·퀴즈마다 갱신해야 하고 반드시 어긋난다.
+
+- 소단원 = `SRS level>=3 인 아이템 / 전체 아이템`
+- 대단원 = 소속 소단원의 아이템 수 가중 평균
+- 교재 = 대단원 평균 + **"채워진 정도"**(내용 있는 소단원 / 전체 소단원)를 **별도로** 표시
+
+"채워진 정도"를 따로 보여주는 게 요청서의 "나만의 교재가 완성돼 간다"는 피드백의 실체다. 빈 소단원은 점선 회색 카드로 렌더해서 "여기 아직 안 채웠다"가 눈에 보이게 한다.
+
+### 4.3 (4단계) 퀴즈 엔진
+
+파일 분해와 함수 명세는 **PRD §3을 그대로 따른다**(`scope.ts` / `weight.ts` / `tokenize.ts` / `distractor.ts` / `builders.ts` / `grade.ts` / `index.ts`). 그 문서에 이미 최장일치 분절, 오답 점수식, 가중치 공식이 다 적혀 있으므로 여기서 반복하지 않는다.
+
+이 문서가 추가로 못박는 것 두 가지:
+
+1. **`buildLessonExercises`를 고치지 말고 버린다.** 절차적 대본이라 가중 샘플링을 끼워 넣을 자리가 없다. `buildQuiz(book, scope, state, opts)` 하나로 새로 쓰고, 챕터 퀴즈는 `scope: {type:'chapter'}`의 특수 케이스가 된다. `buildReviewExercises`도 `scope: {type:'review'}`로 흡수 → **함수 2개가 1개로 줄고 SRS 경로가 하나로 통일된다(B1 해결).**
+2. **`slice(0, 14)` 같은 상수를 코드에 남기지 않는다.** 문항 수는 `QuizOptions.count`로 받고, 기본값은 범위별로 다르게 준다(소단원 10 / 대단원 15 / 교재 전체 20). 교재 전체 범위에서 균등 무작위 샘플링은 금지 — 300개 중 20개를 무작위로 뽑으면 "매번 새 문제만 나오고 아무것도 안 외워진다"가 된다. **book 스코프는 가중 샘플링 강제.**
+
+### 4.4 (5단계) 범위 선택 UI
+
+와이어프레임은 PRD §2.3 참고. 이 문서가 강조할 점 하나:
+
+**"가능 문항 수"를 반드시 미리 계산해 보여준다.** 듣기를 켰는데 오디오가 6개뿐(현재 내장 데이터 실측치)이면 사용자가 시작 전에 알아야 한다. 지금 앱이 "파일이 실제 존재하는 항목만 출제"(`audio.ts:checkAudioFiles`)하는 원칙의 UI 확장이다.
+
+---
+
+## 5. 하지 말아야 할 것
+
+- **서버·Prisma·User 테이블 도입.** 혼자 쓰는 앱에 인증·세션은 순수 오버헤드고, 매일 쌓이는 녹음이 스토리지 비용과 백업 책임을 만든다. 백업 zip이 이미 있어서 데이터 손실 위험은 해결됐다. 트리거는 "폰에서도 봐야 한다" 하나뿐.
+- **퀴즈 중심으로 컨셉 되돌리기.** 이 앱은 "카톡 스터디 대체(매일 본문·녹음·필기)가 본체, 퀴즈는 보조"로 방향이 잡혀 있고 `ChapterPage`가 그 결과물이다. 요청서 §1 문구는 퀴즈 중심으로 읽히지만, 여기서 뒤집으면 `ChapterPage`/`studyLog` 계열이 사실상 폐기된다. 이 문서는 **현행 방향 유지 + 퀴즈 강화**를 전제로 썼다. 진짜로 뒤집을 거면 그건 별도 결정이다.
+- **1·2단계 없이 4·5단계 먼저.** §3 마지막 문단 참고.
+- **평면 포맷 하위호환 유지.** 내장 12권을 스크립트로 변환하는 비용이 하위호환 코드를 영구히 끌고 가는 비용보다 훨씬 싸다.
