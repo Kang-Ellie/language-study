@@ -11,6 +11,7 @@ import {
   type AppState,
 } from './lib/storage'
 import type { MigrationReport } from './lib/migrate'
+import { defaultRequest, type QuizRequest } from './lib/quiz'
 import { booksOfLang, getAllBooks } from './lib/books'
 import Shelf from './components/Shelf'
 import BookPage from './components/BookPage'
@@ -26,9 +27,12 @@ type View =
   | { name: 'book'; bookId: string }
   | { name: 'chapter'; bookId: string; chapterId: string }
   | { name: 'edit'; bookId?: string } // bookId 없으면 새 책
-  | { name: 'lesson'; bookId: string; chapterId: string }
-  | { name: 'review' }
-  | { name: 'done'; result: LessonResult; bookId?: string; chapterId?: string }
+  // 퀴즈는 범위(request)와 함께 두 가지를 따로 들고 다닌다.
+  //   from*      끝난 뒤 돌아갈 화면 (소단원 퀴즈를 챕터에서 시작했으면 챕터로 돌아가야 한다)
+  //   markChapterId  완료 표시를 켤 챕터 — '이 챕터' 범위일 때만.
+  //                  교재 전체 퀴즈가 챕터를 완료로 만들면 안 된다.
+  | { name: 'lesson'; request: QuizRequest; fromBookId?: string; fromChapterId?: string; markChapterId?: string }
+  | { name: 'done'; result: LessonResult; fromBookId?: string; fromChapterId?: string }
   | { name: 'profile' }
 
 /** 책과 챕터를 id로 찾는다. 못 찾으면 undefined */
@@ -53,17 +57,35 @@ export default function App({ report }: { report?: MigrationReport }) {
   const allBooks = useMemo(() => getAllBooks(), [bookVer])
   const langBooks = useMemo(() => booksOfLang(allBooks, state.lang), [allBooks, state.lang])
 
-  function finishLesson(result: LessonResult, bookId?: string, chapterId?: string) {
+  function finishLesson(result: LessonResult, from: { bookId?: string; chapterId?: string }, markChapterId?: string) {
     setState((s) => {
       let next = recordStudy(s, result.xp)
       if (result.isReview) {
         next = { ...next, hearts: MAX_HEARTS } // 복습 완료 → 하트 회복
-      } else if (chapterId !== undefined) {
-        next = recordChapterQuiz(next, chapterId)
+      } else if (markChapterId !== undefined) {
+        next = recordChapterQuiz(next, markChapterId)
       }
       return next
     })
-    setView({ name: 'done', result, bookId, chapterId })
+    setView({ name: 'done', result, fromBookId: from.bookId, fromChapterId: from.chapterId })
+  }
+
+  /** 퀴즈·결과 화면에서 돌아갈 곳 */
+  function backFrom(bookId?: string, chapterId?: string) {
+    if (bookId && chapterId) setView({ name: 'chapter', bookId, chapterId })
+    else if (bookId) setView({ name: 'book', bookId })
+    else setView({ name: 'shelf' })
+  }
+
+  /** 범위 선택 결과 → 퀴즈 화면 이동 */
+  function startQuiz(request: QuizRequest, from: { bookId: string; chapterId?: string }) {
+    setView({
+      name: 'lesson',
+      request,
+      fromBookId: from.bookId,
+      fromChapterId: from.chapterId,
+      markChapterId: request.scope.type === 'chapter' ? request.scope.chapterId : undefined,
+    })
   }
 
   if (notice.length > 0) {
@@ -84,29 +106,21 @@ export default function App({ report }: { report?: MigrationReport }) {
     )
   }
 
-  if (view.name === 'lesson' || view.name === 'review') {
-    const found = view.name === 'lesson' ? locate(allBooks, view.bookId, view.chapterId) : {}
+  if (view.name === 'lesson') {
+    const from = { bookId: view.fromBookId, chapterId: view.fromChapterId }
+    const found = view.fromBookId ? locate(allBooks, view.fromBookId, view.fromChapterId) : {}
     return (
       <LessonScreen
         lang={state.lang}
         books={langBooks}
         book={found.book}
         lesson={found.chapter}
-        isReview={view.name === 'review'}
+        request={view.request}
+        isReview={view.request.scope.type === 'review'}
         state={state}
         setState={setState}
-        onExit={() =>
-          view.name === 'lesson'
-            ? setView({ name: 'chapter', bookId: view.bookId, chapterId: view.chapterId })
-            : setView({ name: 'shelf' })
-        }
-        onFinish={(result) =>
-          finishLesson(
-            result,
-            view.name === 'lesson' ? view.bookId : undefined,
-            view.name === 'lesson' ? view.chapterId : undefined
-          )
-        }
+        onExit={() => backFrom(from.bookId, from.chapterId)}
+        onFinish={(result) => finishLesson(result, from, view.markChapterId)}
       />
     )
   }
@@ -116,13 +130,7 @@ export default function App({ report }: { report?: MigrationReport }) {
       <Complete
         result={view.result}
         state={state}
-        onContinue={() =>
-          view.bookId && view.chapterId
-            ? setView({ name: 'chapter', bookId: view.bookId, chapterId: view.chapterId })
-            : view.bookId
-              ? setView({ name: 'book', bookId: view.bookId })
-              : setView({ name: 'shelf' })
-        }
+        onContinue={() => backFrom(view.fromBookId, view.fromChapterId)}
       />
     )
   }
@@ -163,7 +171,9 @@ export default function App({ report }: { report?: MigrationReport }) {
         chapter={chapter}
         isDone={isChapterDone(state, chapter.id)}
         onBack={() => setView({ name: 'book', bookId: book.id })}
-        onQuiz={() => setView({ name: 'lesson', bookId: book.id, chapterId: chapter.id })}
+        books={langBooks}
+        state={state}
+        onQuiz={(request) => startQuiz(request, { bookId: book.id, chapterId: chapter.id })}
         onMarkDone={() => setState((s) => toggleChapterDone(s, chapter.id))}
         onEdit={() => setView({ name: 'edit', bookId: book.id })}
       />
@@ -178,8 +188,10 @@ export default function App({ report }: { report?: MigrationReport }) {
     }
     return (
       <BookPage
+        books={langBooks}
         book={book}
         state={state}
+        onQuiz={(request) => startQuiz(request, { bookId: book.id })}
         onBack={() => setView({ name: 'shelf' })}
         onOpenChapter={(chapterId) => setView({ name: 'chapter', bookId: book.id, chapterId })}
         onEdit={() => setView({ name: 'edit', bookId: book.id })}
@@ -194,7 +206,7 @@ export default function App({ report }: { report?: MigrationReport }) {
       books={langBooks}
       onOpenBook={(bookId) => setView({ name: 'book', bookId })}
       onNewBook={() => setView({ name: 'edit' })}
-      onStartReview={() => setView({ name: 'review' })}
+      onStartReview={() => setView({ name: 'lesson', request: defaultRequest({ type: 'review' }) })}
       onProfile={() => setView({ name: 'profile' })}
     />
   )

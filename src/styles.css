@@ -361,3 +361,25 @@ code { font-family: var(--mono); background: var(--pink-soft); border-radius: 5p
 .backup-mode { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.5; padding: 7px 0; }
 .backup-mode input { width: 18px; height: 18px; accent-color: var(--pink); flex: none; margin-top: 1px; }
 .backup-mode b { color: var(--ink); }
+
+/* ── 퀴즈 범위 선택 ────────────────────────────── */
+.modal.picker { max-width: 420px; width: 100%; text-align: left; padding: 20px; max-height: 88vh; overflow-y: auto; }
+.picker-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.picker-head h3 { margin: 0; font-size: 18px; }
+.picker-group { margin: 14px 0; }
+.picker-label { font-size: 12px; font-weight: 800; color: var(--ink-soft); margin-bottom: 6px; }
+.picker-row {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  border: var(--bd); border-radius: 12px; background: #fff; padding: 10px 12px;
+  margin-bottom: 6px; font-size: 14px; font-weight: 700; color: var(--ink); text-align: left;
+}
+.picker-row.on { background: var(--pink-soft); border-color: var(--pink); }
+.picker-row.empty { opacity: 0.45; }
+.picker-row:active:not(:disabled) { transform: translate(1px, 1px); }
+.picker-radio { color: var(--pink-deep); font-size: 13px; }
+.picker-row-label { flex: 1; }
+.picker-count { font-size: 12px; color: var(--ink-soft); font-weight: 800; }
+.picker-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.picker-n { font-size: 10px; opacity: 0.7; }
+.picker .setting-row { border-bottom: none; }
+.picker .editor-error { margin: 6px 0; }

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Unit } from '../types'
+import type { QuizRequest } from '../lib/quiz'
+import QuizScopePicker, { type ScopeChoice } from './QuizScopePicker'
 import { doneChapterCount, isChapterDone, type AppState } from '../lib/storage'
 import { checkAudioFiles, playMp3 } from '../lib/audio'
 import { bookAudioFiles } from '../lib/lessonModel'
@@ -9,15 +11,18 @@ import ImageThumb from './ImageThumb'
 import Taskbar from './Taskbar'
 
 interface Props {
+  books: Unit[]
   book: Unit
   state: AppState
+  onQuiz: (request: QuizRequest) => void
   onBack: () => void
   onOpenChapter: (chapterId: string) => void
   onEdit: () => void
 }
 
-export default function BookPage({ book, state, onBack, onOpenChapter, onEdit }: Props) {
+export default function BookPage({ books, book, state, onQuiz, onBack, onOpenChapter, onEdit }: Props) {
   const [tab, setTab] = useState<'chapters' | 'content'>('chapters')
+  const [showPicker, setShowPicker] = useState(false)
   const [audioOk, setAudioOk] = useState<Set<string>>(new Set())
   const lang = book.lang // 오디오·이미지 네임스페이스
 
@@ -31,6 +36,13 @@ export default function BookPage({ book, state, onBack, onOpenChapter, onEdit }:
     const files = bookAudioFiles(book)
     if (files.length > 0) checkAudioFiles(lang, files).then(setAudioOk)
   }, [book, lang])
+
+  const scopeChoices: ScopeChoice[] = [
+    { scope: { type: 'book', bookId: book.id }, label: `📚 교재 전체 — ${book.title}` },
+    ...book.lessons.map((l) => ({ scope: { type: 'chapter' as const, chapterId: l.id }, label: `📑 ${l.title}` })),
+    { scope: { type: 'review' }, label: '🔔 오늘 복습할 것' },
+    { scope: { type: 'wrong', days: 7 }, label: '🥀 최근 일주일 틀린 것' },
+  ]
 
   const Speaker = ({ file }: { file?: string }) =>
     file && audioOk.has(file) ? (
@@ -71,6 +83,8 @@ export default function BookPage({ book, state, onBack, onOpenChapter, onEdit }:
                 {done === 0 ? '📖 학습 시작하기' : done >= book.lessons.length ? '💮 다시 보기' : `⭐️ 이어서 — ${nextChapter.title}`}
               </button>
             )}
+
+            <button className="pill big" onClick={() => setShowPicker(true)}>🎯 이 교재로 퀴즈</button>
 
             <div className="book-tabs">
               <button className={`pill ${tab === 'chapters' ? 'active' : ''}`} onClick={() => setTab('chapters')}>📑 챕터</button>
@@ -185,6 +199,19 @@ export default function BookPage({ book, state, onBack, onOpenChapter, onEdit }:
           </div>
         </div>
       </div>
+      {showPicker && (
+        <QuizScopePicker
+          books={books}
+          state={state}
+          audioOk={audioOk}
+          choices={scopeChoices}
+          onClose={() => setShowPicker(false)}
+          onStart={(req) => {
+            setShowPicker(false)
+            onQuiz(req)
+          }}
+        />
+      )}
       <Taskbar label={book.title} onStart={onBack} />
     </div>
   )

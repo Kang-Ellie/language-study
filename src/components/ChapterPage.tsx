@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Lesson, Unit } from '../types'
+import type { QuizRequest } from '../lib/quiz'
+import type { AppState } from '../lib/storage'
+import QuizScopePicker, { type ScopeChoice } from './QuizScopePicker'
 import { lessonAudioFiles } from '../lib/lessonModel'
 import { checkAudioFiles, playMp3 } from '../lib/audio'
 import { today } from '../lib/storage'
@@ -9,16 +12,18 @@ import RecordButton from './RecordButton'
 import Taskbar from './Taskbar'
 
 interface Props {
+  books: Unit[]
+  state: AppState
   book: Unit
   chapter: Lesson
   isDone: boolean
   onBack: () => void
-  onQuiz: () => void
+  onQuiz: (request: QuizRequest) => void
   onMarkDone: () => void
   onEdit: () => void
 }
 
-export default function ChapterPage({ book, chapter, isDone, onBack, onQuiz, onMarkDone, onEdit }: Props) {
+export default function ChapterPage({ books, state, book, chapter, isDone, onBack, onQuiz, onMarkDone, onEdit }: Props) {
   const lesson = chapter
   const sections = chapter.sections
   const chapterNo = book.lessons.findIndex((l) => l.id === chapter.id) + 1
@@ -26,6 +31,7 @@ export default function ChapterPage({ book, chapter, isDone, onBack, onQuiz, onM
   const [audioOk, setAudioOk] = useState<Set<string>>(new Set())
   const [log, setLog] = useState<LogEntry[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [showPicker, setShowPicker] = useState(false)
 
   useEffect(() => {
     const files = lessonAudioFiles(chapter)
@@ -43,6 +49,17 @@ export default function ChapterPage({ book, chapter, isDone, onBack, onQuiz, onM
     refreshLog()
     setShowForm(false)
   }
+
+  // 소단원이 여럿일 때만 소단원 범위를 따로 보여준다 (하나뿐이면 챕터와 같다)
+  const scopeChoices: ScopeChoice[] = [
+    ...(sections.length > 1
+      ? sections.map((s) => ({ scope: { type: 'section' as const, sectionId: s.id }, label: `📂 ${s.title}` }))
+      : []),
+    { scope: { type: 'chapter', chapterId: chapter.id }, label: `📑 이 챕터 — ${chapter.title}` },
+    { scope: { type: 'book', bookId: book.id }, label: `📚 교재 전체 — ${book.title}` },
+    { scope: { type: 'review' }, label: '🔔 오늘 복습할 것' },
+    { scope: { type: 'wrong', days: 7 }, label: '🥀 최근 일주일 틀린 것' },
+  ]
 
   const Speaker = ({ file, label }: { file?: string; label?: string }) =>
     file && audioOk.has(file) ? (
@@ -150,7 +167,7 @@ export default function ChapterPage({ book, chapter, isDone, onBack, onQuiz, onM
             ))}
 
             <div className="chapter-actions">
-              <button className="pill primary big" onClick={onQuiz}>🎯 퀴즈로 복습</button>
+              <button className="pill primary big" onClick={() => setShowPicker(true)}>🎯 퀴즈로 복습</button>
               <button className={`pill big ${isDone ? 'soft' : ''}`} onClick={onMarkDone}>
                 {isDone ? '✅ 완료됨 (다시 누르면 취소)' : '📌 오늘 학습 완료로 표시'}
               </button>
@@ -184,6 +201,19 @@ export default function ChapterPage({ book, chapter, isDone, onBack, onQuiz, onM
           </div>
         </div>
       </div>
+      {showPicker && (
+        <QuizScopePicker
+          books={books}
+          state={state}
+          audioOk={audioOk}
+          choices={scopeChoices}
+          onClose={() => setShowPicker(false)}
+          onStart={(req) => {
+            setShowPicker(false)
+            onQuiz(req)
+          }}
+        />
+      )}
       <Taskbar label={`${book.title} · ${lesson.title}`} onStart={onBack} />
     </div>
   )

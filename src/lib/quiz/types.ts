@@ -24,6 +24,15 @@ export type QuizKind = 'pick' | 'match' | 'bank' | 'fill' | 'type' | 'listen'
 
 export const ALL_KINDS: QuizKind[] = ['pick', 'match', 'bank', 'fill', 'type', 'listen']
 
+export const KIND_LABEL: Record<QuizKind, string> = {
+  pick: '뜻 고르기',
+  match: '짝 맞추기',
+  bank: '문장 조립',
+  fill: '빈칸 채우기',
+  type: '타이핑',
+  listen: '듣기',
+}
+
 export interface QuizOptions {
   /** 문항 수. 'all'이면 만들 수 있는 만큼 */
   count: number | 'all'
@@ -46,6 +55,26 @@ export function defaultOptions(scope: QuizScope, audioOk: Set<string>): QuizOpti
     useSrsWeight: true,
     audioOk,
   }
+}
+
+/**
+ * 화면이 만들어 넘기는 퀴즈 요청.
+ * 오디오 존재 확인(audioOk)은 비동기라 퀴즈 화면이 직접 하므로 여기 없다.
+ */
+export interface QuizRequest {
+  scope: QuizScope
+  count: number | 'all'
+  kinds: QuizKind[]
+  useSrsWeight: boolean
+}
+
+export function requestToOptions(req: QuizRequest, audioOk: Set<string>): QuizOptions {
+  return { count: req.count, kinds: req.kinds, useSrsWeight: req.useSrsWeight, audioOk }
+}
+
+export function defaultRequest(scope: QuizScope): QuizRequest {
+  const { count, kinds, useSrsWeight } = defaultOptions(scope, new Set())
+  return { scope, count, kinds, useSrsWeight }
 }
 
 /** 퀴즈 엔진이 다루는 항목. 저장 구조가 아니라 투영 뷰(types.ts의 StudyItem)를 쓴다. */

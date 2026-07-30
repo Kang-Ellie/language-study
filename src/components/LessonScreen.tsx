@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Exercise, Lesson, LessonResult, Unit } from '../types'
 import type { AppState } from '../lib/storage'
 import { updateSrs, type Outcome } from '../lib/srs'
-import { buildQuiz, defaultOptions, grade as gradeAnswer, type QuizScope } from '../lib/quiz'
+import { buildQuiz, defaultRequest, grade as gradeAnswer, requestToOptions, type QuizRequest } from '../lib/quiz'
 import { bookAudioFiles, lessonAudioFiles } from '../lib/lessonModel'
 import { playCorrect, playWrong, playMp3, checkAudioFiles } from '../lib/audio'
 
@@ -11,6 +11,8 @@ interface Props {
   books: Unit[] // 같은 언어의 책 전부 (보기 풀 보충용)
   book?: Unit
   lesson?: Lesson
+  /** 무엇을 어떻게 낼지. 없으면 복습 기본값 */
+  request?: QuizRequest
   isReview: boolean
   state: AppState
   setState: (fn: (s: AppState) => AppState) => void
@@ -25,7 +27,7 @@ interface Item {
 
 type Status = 'answering' | 'correct' | 'wrong'
 
-export default function LessonScreen({ lang, books, book, lesson, isReview, state, setState, onExit, onFinish }: Props) {
+export default function LessonScreen({ lang, books, book, lesson, request, isReview, state, setState, onExit, onFinish }: Props) {
   const [items, setItems] = useState<Item[] | null>(null)
   const [pos, setPos] = useState(0)
   const [status, setStatus] = useState<Status>('answering')
@@ -44,16 +46,13 @@ export default function LessonScreen({ lang, books, book, lesson, isReview, stat
   useEffect(() => {
     let alive = true
     async function build() {
-      // 복습은 책 전체의 오디오를, 챕터 퀴즈는 그 챕터의 오디오만 확인하면 된다
-      const files = isReview ? books.flatMap(bookAudioFiles) : lesson ? lessonAudioFiles(lesson) : []
+      const req = request ?? defaultRequest({ type: 'review' })
+      // 범위가 한 챕터로 좁으면 그 챕터 오디오만, 아니면 책 전체를 확인한다
+      const files =
+        req.scope.type === 'chapter' && lesson ? lessonAudioFiles(lesson) : books.flatMap(bookAudioFiles)
       const ok = files.length > 0 ? await checkAudioFiles(lang, files) : new Set<string>()
 
-      const scope: QuizScope | null = isReview
-        ? { type: 'review' }
-        : lesson
-          ? { type: 'chapter', chapterId: lesson.id }
-          : null
-      const exercises: Exercise[] = scope ? buildQuiz(books, scope, state, defaultOptions(scope, ok)) : []
+      const exercises: Exercise[] = buildQuiz(books, req.scope, state, requestToOptions(req, ok))
       if (alive) {
         setItems(exercises.map((ex) => ({ ex, retry: false })))
         setBaseTotal(exercises.length)
