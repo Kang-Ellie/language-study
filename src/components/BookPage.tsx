@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 import type { Unit } from '../types'
 import type { QuizRequest } from '../lib/quiz'
 import QuizScopePicker, { type ScopeChoice } from './QuizScopePicker'
+import SectionView from './SectionView'
 import { bookFill, bookMastery, chapterMastery, pct, sectionHasContent } from '../lib/progress'
 import { doneChapterCount, isChapterDone, type AppState } from '../lib/storage'
-import { checkAudioFiles, playMp3 } from '../lib/audio'
+import { checkAudioFiles } from '../lib/audio'
 import { bookAudioFiles } from '../lib/lessonModel'
 import { bookLogDays } from '../lib/studyLog'
 import { SOURCE_LABEL } from './Shelf'
-import ImageThumb from './ImageThumb'
 import Taskbar from './Taskbar'
 
 interface Props {
@@ -46,13 +46,6 @@ export default function BookPage({ books, book, state, onQuiz, onBack, onOpenCha
     { scope: { type: 'review' }, label: '🔔 오늘 복습할 것' },
     { scope: { type: 'wrong', days: 7 }, label: '🥀 최근 일주일 틀린 것' },
   ]
-
-  const Speaker = ({ file }: { file?: string }) =>
-    file && audioOk.has(file) ? (
-      <button className="spk" onClick={() => playMp3(lang, file)}>🔊</button>
-    ) : (
-      <span className="spk off">·</span>
-    )
 
   return (
     <div className="desktop">
@@ -134,81 +127,13 @@ export default function BookPage({ books, book, state, onQuiz, onBack, onOpenCha
                   <div key={lesson.id} className="content-chapter">
                     <h3 className="content-ch-title">📑 {lesson.title}</h3>
                     {lesson.sections.map((section) => (
-                      <div key={section.id} className="content-section">
-                        {section.title && <div className="content-sec-title">📂 {section.title}</div>}
-
-                        {(section.images ?? []).length > 0 && (
-                          <div className="img-gallery">
-                            {section.images!.map((img, i) => (
-                              <ImageThumb key={i} ns={lang} file={img} className="gallery-thumb" />
-                            ))}
-                          </div>
-                        )}
-
-                        {section.passageText && (
-                          <div className="passage-block">
-                            <div className="content-kind">
-                              📖 본문
-                              {section.passageAudio && audioOk.has(section.passageAudio) && (
-                                <button className="spk inline" onClick={() => playMp3(lang, section.passageAudio!)}>🔊 전체 듣기</button>
-                              )}
-                            </div>
-                            <p className="passage-text">{section.passageText}</p>
-                            {section.passageTranslation && <p className="passage-translation">{section.passageTranslation}</p>}
-                          </div>
-                        )}
-
-                        {section.passages.length > 0 && (
-                          <>
-                            <div className="content-kind">🔎 문장별 보기</div>
-                            {section.passages.map((p) => (
-                              <div key={p.id} className="vrow">
-                                <Speaker file={p.audio} />
-                                <div className="vtext">
-                                  {p.reading && <span className="vreading">{p.reading}</span>}
-                                  <span className="vmain">{p.text}</span>
-                                </div>
-                                <div className="vmean">{p.meaning}</div>
-                              </div>
-                            ))}
-                          </>
-                        )}
-
-                        {section.words.length > 0 && (
-                          <>
-                            <div className="content-kind">🔤 새단어</div>
-                            {section.words.map((w) => (
-                              <div key={w.id} className="vrow">
-                                <Speaker file={w.audio} />
-                                <div className="vtext">
-                                  {w.reading && <span className="vreading">{w.reading}</span>}
-                                  <span className="vmain">{w.text}</span>
-                                </div>
-                                <div className="vmean">{w.meaning}</div>
-                              </div>
-                            ))}
-                          </>
-                        )}
-
-                        {section.grammar.length > 0 && (
-                          <>
-                            <div className="content-kind">📐 문법</div>
-                            {section.grammar.map((g) => (
-                              <div key={g.id} className="grammar-box">
-                                <div className="grammar-point">{g.point}</div>
-                                {g.explanation && <div className="grammar-explain">{g.explanation}</div>}
-                                {g.examples.map((ex) => (
-                                  <div key={ex.id} className="vrow example">
-                                    <Speaker file={ex.audio} />
-                                    <div className="vtext"><span className="vmain">{ex.text}</span></div>
-                                    <div className="vmean">{ex.meaning}</div>
-                                  </div>
-                                ))}
-                              </div>
-                            ))}
-                          </>
-                        )}
-                      </div>
+                      <SectionView
+                        key={section.id}
+                        book={book}
+                        chapter={lesson}
+                        section={section}
+                        audioOk={audioOk}
+                      />
                     ))}
                   </div>
                 ))}

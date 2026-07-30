@@ -2,20 +2,15 @@ import { useRef, useState } from 'react'
 import type { Unit } from '../types'
 import {
   adoptIds,
-  newGrammar,
-  newGrammarExample,
   newLesson,
   newSection,
-  newSentence,
-  newWord,
   normalizeBook,
   rekeyBook,
 } from '../lib/normalize'
 import { deleteCustomBook, isBuiltinBook, isCustomBook, newBookId, parseBookJson, upsertBook } from '../lib/books'
 import { putImage } from '../lib/imageStore'
 import { LANGUAGES, languageOf } from '../data'
-import AudioField from './AudioField'
-import ImageThumb from './ImageThumb'
+import SectionEditor from './SectionEditor'
 
 interface Props {
   lang: string // 새 책을 만들 때 기본 언어 (지금 책장 탭)
@@ -47,14 +42,6 @@ function toEditable(unit: Unit | undefined, lang: string): Unit {
   return normalizeBook(unit, unit.id)
 }
 
-/** 본문 전체 텍스트를 문장 부호 기준으로 쪼갬 (퀴즈용 문장 자동 생성) */
-function splitPassage(text: string): string[] {
-  return text
-    .split(/(?<=[。！？.!?…])\s*/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-}
-
 export default function Editor({ lang, initial, onDone, onBack }: Props) {
   const [book, setBook] = useState<Unit>(() => toEditable(initial, lang))
   const bookId = book.id
@@ -62,9 +49,6 @@ export default function Editor({ lang, initial, onDone, onBack }: Props) {
   const [showJson, setShowJson] = useState<'none' | 'import' | 'export'>('none')
   const [jsonText, setJsonText] = useState('')
   const [error, setError] = useState('')
-  const [openDetail, setOpenDetail] = useState<Record<string, boolean>>({})
-  const toggleDetail = (li: number, si: number) =>
-    setOpenDetail((d) => ({ ...d, [`${li}-${si}`]: !d[`${li}-${si}`] }))
 
   const isNew = !initial
   const builtin = initial ? isBuiltinBook(initial.id) : false
@@ -268,126 +252,15 @@ export default function Editor({ lang, initial, onDone, onBack }: Props) {
                   </div>
 
                   {lesson.sections.map((section, si) => (
-                    <div key={si} className="section-card">
-                      <div className="section-head">
-                        <span className="section-tag">📂 소카테고리</span>
-                        <input className="section-title" value={section.title} placeholder="예: 회화1 / 본문 / 독해" onChange={(e) => mutate((b) => { sec(b, li, si).title = e.target.value })} />
-                        {lesson.sections.length > 1 && (
-                          <button className="mini-del" title="소카테고리 삭제" onClick={() => mutate((b) => { b.lessons[li].sections.splice(si, 1) })}>🗑</button>
-                        )}
-                      </div>
-
-                      {/* 첨부 이미지 (교재 페이지 스캔 등) */}
-                      <h5>🖼 첨부 이미지</h5>
-                      <div className="img-gallery-edit">
-                        {(section.images ?? []).map((img, ii) => (
-                          <div key={ii} className="img-gallery-item">
-                            <ImageThumb ns={book.lang} file={img} />
-                            <button className="mini-del gallery-del" onClick={() => mutate((b) => { sec(b, li, si).images = (sec(b, li, si).images ?? []).filter((_, j) => j !== ii) })}>✕</button>
-                          </div>
-                        ))}
-                        <button className="pill soft tiny" onClick={() => openGalleryPicker(li, si)}>＋ 이미지 추가</button>
-                      </div>
-
-                      {/* 본문 — 긴 지문은 통째로 붙여넣기 */}
-                      <h5>📖 본문 <span className="hint-inline">(교재 원문을 통째로 붙여넣으세요)</span></h5>
-                      <div className="edit-item">
-                        <label className="mini-label">원문 전체</label>
-                        <textarea
-                          className="passage-textarea"
-                          value={section.passageText ?? ''}
-                          placeholder="교재 본문을 통째로 붙여넣으세요 (여러 문장이어도 OK)"
-                          rows={5}
-                          onChange={(e) => mutate((b) => { sec(b, li, si).passageText = e.target.value })}
-                        />
-                        <label className="mini-label">번역 전체 (선택)</label>
-                        <textarea
-                          className="passage-textarea"
-                          value={section.passageTranslation ?? ''}
-                          placeholder="전체 번역 (선택)"
-                          rows={3}
-                          onChange={(e) => mutate((b) => { sec(b, li, si).passageTranslation = e.target.value })}
-                        />
-                        <div className="edit-line">
-                          <AudioField lang={book.lang} value={section.passageAudio} slug={section.title} onChange={(f) => mutate((b) => { sec(b, li, si).passageAudio = f })} />
-                          <span className="hint-inline">선생님 낭독 전체 녹음</span>
-                        </div>
-                        {(section.passageText ?? '').trim() && (
-                          <button
-                            className="pill soft tiny"
-                            onClick={() => mutate((b) => {
-                              const s = sec(b, li, si)
-                              const parts = splitPassage(s.passageText ?? '')
-                              const existing = new Set(s.passages.map((p) => p.text))
-                              for (const t of parts) if (!existing.has(t)) s.passages.push(newSentence(s.id, t))
-                            })}
-                          >
-                            ✂️ 문장으로 자동 분리 (퀴즈용, 선택)
-                          </button>
-                        )}
-                      </div>
-
-                      {section.passages.length > 0 && (
-                        <button className="pill soft tiny detail-toggle" onClick={() => toggleDetail(li, si)}>
-                          {openDetail[`${li}-${si}`] ? '▲ 문장별 세부 편집 접기' : `▼ 문장별 세부 편집 (${section.passages.length}개 · 퀴즈/개별듣기용, 선택)`}
-                        </button>
-                      )}
-                      {openDetail[`${li}-${si}`] && section.passages.map((p, pi) => (
-                        <div key={pi} className="edit-item">
-                          <div className="edit-line">
-                            <input value={p.text} placeholder="문장 (你去哪儿？)" onChange={(e) => mutate((b) => { sec(b, li, si).passages[pi].text = e.target.value })} />
-                            <button className="mini-del" onClick={() => mutate((b) => { sec(b, li, si).passages.splice(pi, 1) })}>✕</button>
-                          </div>
-                          <div className="edit-line">
-                            {book.lang !== 'en' && <input value={p.reading ?? ''} placeholder="발음(병음/후리가나)" onChange={(e) => mutate((b) => { sec(b, li, si).passages[pi].reading = e.target.value || undefined })} />}
-                            <input value={p.meaning} placeholder="뜻 (선택, 퀴즈에 쓰려면 입력)" onChange={(e) => mutate((b) => { sec(b, li, si).passages[pi].meaning = e.target.value })} />
-                          </div>
-                          <div className="edit-line">
-                            <AudioField lang={book.lang} value={p.audio} slug={p.text} onChange={(f) => mutate((b) => { sec(b, li, si).passages[pi].audio = f })} />
-                            {book.lang !== 'en' && <input className="tok" value={(p.tokens ?? []).join(' ')} placeholder="타일 분절 (你 去 哪儿) · 비우면 글자단위" onChange={(e) => mutate((b) => { sec(b, li, si).passages[pi].tokens = e.target.value.split(' ').filter(Boolean) })} />}
-                          </div>
-                        </div>
-                      ))}
-                      {openDetail[`${li}-${si}`] && (
-                        <button className="pill soft tiny" onClick={() => mutate((b) => { sec(b, li, si).passages.push(newSentence(sec(b, li, si).id)) })}>＋ 문장 직접 추가</button>
-                      )}
-
-                      {/* 새단어 */}
-                      <h5>🔤 새단어</h5>
-                      {section.words.map((w, wi) => (
-                        <div key={wi} className="edit-item">
-                          <div className="edit-line">
-                            <input value={w.text} placeholder="단어 (你好)" onChange={(e) => mutate((b) => { sec(b, li, si).words[wi].text = e.target.value })} />
-                            {book.lang !== 'en' && <input value={w.reading ?? ''} placeholder="발음" onChange={(e) => mutate((b) => { sec(b, li, si).words[wi].reading = e.target.value || undefined })} />}
-                            <input value={w.meaning} placeholder="뜻" onChange={(e) => mutate((b) => { sec(b, li, si).words[wi].meaning = e.target.value })} />
-                            <button className="mini-del" onClick={() => mutate((b) => { sec(b, li, si).words.splice(wi, 1) })}>✕</button>
-                          </div>
-                          <AudioField lang={book.lang} value={w.audio} slug={w.text} onChange={(f) => mutate((b) => { sec(b, li, si).words[wi].audio = f })} />
-                        </div>
-                      ))}
-                      <button className="pill soft" onClick={() => mutate((b) => { sec(b, li, si).words.push(newWord(sec(b, li, si).id)) })}>＋ 새단어</button>
-
-                      {/* 문법 */}
-                      <h5>📐 문법</h5>
-                      {section.grammar.map((g, gi) => (
-                        <div key={gi} className="edit-item">
-                          <div className="edit-line">
-                            <input value={g.point} placeholder="문법 제목 (예: 동사 + 吗 의문문)" onChange={(e) => mutate((b) => { sec(b, li, si).grammar[gi].point = e.target.value })} />
-                            <button className="mini-del" onClick={() => mutate((b) => { sec(b, li, si).grammar.splice(gi, 1) })}>✕</button>
-                          </div>
-                          <textarea className="g-explain" value={g.explanation} placeholder="설명" rows={2} onChange={(e) => mutate((b) => { sec(b, li, si).grammar[gi].explanation = e.target.value })} />
-                          {g.examples.map((ex, ei) => (
-                            <div key={ei} className="edit-line indent">
-                              <input value={ex.text} placeholder="예문" onChange={(e) => mutate((b) => { sec(b, li, si).grammar[gi].examples[ei].text = e.target.value })} />
-                              <input value={ex.meaning} placeholder="뜻" onChange={(e) => mutate((b) => { sec(b, li, si).grammar[gi].examples[ei].meaning = e.target.value })} />
-                              <button className="mini-del" onClick={() => mutate((b) => { sec(b, li, si).grammar[gi].examples.splice(ei, 1) })}>✕</button>
-                            </div>
-                          ))}
-                          <button className="pill soft tiny" onClick={() => mutate((b) => { sec(b, li, si).grammar[gi].examples.push(newGrammarExample(sec(b, li, si).grammar[gi].id)) })}>＋ 예문</button>
-                        </div>
-                      ))}
-                      <button className="pill soft" onClick={() => mutate((b) => { sec(b, li, si).grammar.push(newGrammar(sec(b, li, si).id)) })}>＋ 문법</button>
-                    </div>
+                    <SectionEditor
+                      key={section.id}
+                      section={section}
+                      lang={book.lang}
+                      canDelete={lesson.sections.length > 1}
+                      update={(fn) => mutate((b) => fn(sec(b, li, si)))}
+                      onDelete={() => mutate((b) => { b.lessons[li].sections.splice(si, 1) })}
+                      onPickImages={() => openGalleryPicker(li, si)}
+                    />
                   ))}
 
                   <button className="pill" onClick={() => mutate((b) => { b.lessons[li].sections.push(newSection(b.lessons[li].id, '')) })}>＋ 소카테고리 추가</button>

@@ -1,10 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+// 퀴즈 러너 — 문제를 만들고, 답을 받고, 채점 결과를 SRS에 반영한다.
+// 문제 유형별 화면과 머리·발 부분은 components/quiz/ 로 나가 있다.
+// 이 파일이 갖는 건 "세션 진행 상태" 하나뿐이다.
+import { useEffect, useState } from 'react'
 import type { Exercise, Lesson, LessonResult, Unit } from '../types'
 import type { AppState } from '../lib/storage'
 import { updateSrs, type Outcome } from '../lib/srs'
 import { buildQuiz, defaultRequest, grade as gradeAnswer, requestToOptions, type QuizRequest } from '../lib/quiz'
 import { bookAudioFiles, lessonAudioFiles } from '../lib/lessonModel'
 import { playCorrect, playWrong, playMp3, checkAudioFiles } from '../lib/audio'
+import ExerciseBank from './quiz/ExerciseBank'
+import ExerciseMatch from './quiz/ExerciseMatch'
+import ExercisePick from './quiz/ExercisePick'
+import ExerciseType from './quiz/ExerciseType'
+import FeedbackBar from './quiz/FeedbackBar'
+import QuizHeader from './quiz/QuizHeader'
+import type { Status } from './quiz/types'
 
 interface Props {
   lang: string
@@ -25,9 +35,25 @@ interface Item {
   retry: boolean
 }
 
-type Status = 'answering' | 'correct' | 'wrong'
+/** 정답 텍스트 — 오답 피드백에 보여준다 */
+function answerTextOf(ex: Exercise): string {
+  if (ex.kind === 'bank') return ex.answer.join(' ')
+  if (ex.kind === 'pick' || ex.kind === 'type') return ex.answer
+  return ''
+}
 
-export default function LessonScreen({ lang, books, book, lesson, request, isReview, state, setState, onExit, onFinish }: Props) {
+export default function LessonScreen({
+  lang,
+  books,
+  book,
+  lesson,
+  request,
+  isReview,
+  state,
+  setState,
+  onExit,
+  onFinish,
+}: Props) {
   const [items, setItems] = useState<Item[] | null>(null)
   const [pos, setPos] = useState(0)
   const [status, setStatus] = useState<Status>('answering')
@@ -41,6 +67,7 @@ export default function LessonScreen({ lang, books, book, lesson, request, isRev
   const [tilesPicked, setTilesPicked] = useState<number[]>([])
   const [typed, setTyped] = useState('')
   const soundOn = state.soundOn
+  const audioLang = book?.lang ?? lang
 
   // 문제 생성 (mp3 존재 확인 후)
   useEffect(() => {
@@ -72,7 +99,7 @@ export default function LessonScreen({ lang, books, book, lesson, request, isRev
     if (current && status === 'answering') {
       const ex = current.ex
       if ((ex.kind === 'pick' || ex.kind === 'bank') && ex.audioOnly && ex.promptAudio) {
-        playMp3(book?.lang ?? lang, ex.promptAudio)
+        playMp3(audioLang, ex.promptAudio)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,7 +116,6 @@ export default function LessonScreen({ lang, books, book, lesson, request, isRev
   if (!current) return null
 
   const ex = current.ex
-  const progress = Math.round((pos / items.length) * 100)
 
   function canCheck(): boolean {
     if (ex.kind === 'pick') return picked !== null
@@ -144,7 +170,6 @@ export default function LessonScreen({ lang, books, book, lesson, request, isRev
     const nextPos = pos + 1
     if (items && nextPos >= items.length) {
       const total = baseTotal
-      const acc = total > 0 ? firstTryCorrect / total : 1
       const perfect = firstTryCorrect >= total
       const xp = isReview ? 5 + (perfect ? 3 : 0) : 10 + (perfect ? 5 : 0)
       onFinish({ xp, total, correctFirstTry: Math.min(firstTryCorrect, total), isReview })
@@ -158,31 +183,34 @@ export default function LessonScreen({ lang, books, book, lesson, request, isRev
     setTyped('')
   }
 
-  const correctAnswerText =
-    ex.kind === 'bank' ? ex.answer.join(' ') : ex.kind === 'pick' || ex.kind === 'type' ? ex.answer : ''
-
   return (
     <div className="page lesson">
-      <header className="lesson-top">
-        <button className="quit" onClick={onExit}>✕</button>
-        <div className="progress"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
-        {state.heartsEnabled && !isReview && <span className="hearts">💗 {state.hearts}</span>}
-      </header>
+      <QuizHeader
+        progress={Math.round((pos / items.length) * 100)}
+        hearts={state.heartsEnabled && !isReview ? state.hearts : undefined}
+        onExit={onExit}
+      />
 
       <main className="exercise">
         <h2 className="question">{ex.question}</h2>
 
         {ex.kind === 'pick' && (
-          <PickView ex={ex} picked={picked} setPicked={setPicked} status={status} lang={book?.lang ?? lang} />
+          <ExercisePick ex={ex} picked={picked} setPicked={setPicked} status={status} lang={audioLang} />
         )}
         {ex.kind === 'bank' && (
-          <BankView ex={ex} tilesPicked={tilesPicked} setTilesPicked={setTilesPicked} status={status} lang={book?.lang ?? lang} />
+          <ExerciseBank
+            ex={ex}
+            tilesPicked={tilesPicked}
+            setTilesPicked={setTilesPicked}
+            status={status}
+            lang={audioLang}
+          />
         )}
         {ex.kind === 'type' && (
-          <TypeView ex={ex} typed={typed} setTyped={setTyped} status={status} onEnter={check} />
+          <ExerciseType ex={ex} typed={typed} setTyped={setTyped} status={status} onEnter={check} />
         )}
         {ex.kind === 'match' && (
-          <MatchView
+          <ExerciseMatch
             key={pos}
             pairs={ex.pairs}
             soundOn={soundOn}
@@ -195,32 +223,15 @@ export default function LessonScreen({ lang, books, book, lesson, request, isRev
         )}
       </main>
 
-      <footer className={`lesson-footer ${status}`}>
-        {status === 'answering' ? (
-          ex.kind === 'match' ? (
-            <div className="feedback-hint">모든 짝을 맞추면 다음으로 넘어가요</div>
-          ) : (
-            <button className="btn primary big" disabled={!canCheck()} onClick={check}>확인</button>
-          )
-        ) : (
-          <div className="feedback">
-            <div className="feedback-text">
-              {status === 'correct' ? (
-                nearMiss ? (
-                  <span>💮 거의 맞았어요! 정답: <b>{correctAnswerText}</b></span>
-                ) : (
-                  <span>💮 정답이에요!</span>
-                )
-              ) : (
-                <span>🥀 아쉬워요! 정답: <b>{correctAnswerText}</b></span>
-              )}
-            </div>
-            <button className={`btn big ${status === 'correct' ? 'primary' : 'danger'}`} onClick={next} autoFocus>
-              계속
-            </button>
-          </div>
-        )}
-      </footer>
+      <FeedbackBar
+        status={status}
+        selfChecking={ex.kind === 'match'}
+        canCheck={canCheck()}
+        nearMiss={nearMiss}
+        answerText={answerTextOf(ex)}
+        onCheck={check}
+        onNext={next}
+      />
 
       {noHearts && (
         <div className="modal-back">
@@ -234,231 +245,4 @@ export default function LessonScreen({ lang, books, book, lesson, request, isRev
       )}
     </div>
   )
-}
-
-// ── 4지선다 ──────────────────────────────
-function PickView({
-  ex,
-  picked,
-  setPicked,
-  status,
-  lang,
-}: {
-  ex: Extract<Exercise, { kind: 'pick' }>
-  picked: string | null
-  setPicked: (v: string) => void
-  status: Status
-  lang: string
-}) {
-  return (
-    <div>
-      <div className="prompt-card">
-        {ex.promptAudio && (
-          <button className="speaker" onClick={() => playMp3(lang, ex.promptAudio!)}>🔊</button>
-        )}
-        {!ex.audioOnly && (
-          <div className="prompt-text">
-            {ex.promptReading && <div className="reading">{ex.promptReading}</div>}
-            <div className="prompt-main">{ex.prompt}</div>
-          </div>
-        )}
-      </div>
-      <div className="options">
-        {ex.options.map((opt) => {
-          let cls = 'option'
-          if (picked === opt) cls += ' selected'
-          if (status !== 'answering') {
-            if (opt === ex.answer) cls += ' right'
-            else if (picked === opt) cls += ' wrong'
-          }
-          return (
-            <button key={opt} className={cls} disabled={status !== 'answering'} onClick={() => setPicked(opt)}>
-              {opt}
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-// ── 단어 뱅크 조립 ──────────────────────────────
-function BankView({
-  ex,
-  tilesPicked,
-  setTilesPicked,
-  status,
-  lang,
-}: {
-  ex: Extract<Exercise, { kind: 'bank' }>
-  tilesPicked: number[]
-  setTilesPicked: (v: number[]) => void
-  status: Status
-  lang: string
-}) {
-  return (
-    <div>
-      <div className="prompt-card">
-        {ex.promptAudio && (
-          <button className="speaker" onClick={() => playMp3(lang, ex.promptAudio!)}>🔊</button>
-        )}
-        {!ex.audioOnly && (
-          <div className="prompt-text">
-            {ex.promptReading && <div className="reading">{ex.promptReading}</div>}
-            <div className="prompt-main">{ex.prompt}</div>
-          </div>
-        )}
-      </div>
-      <div className="bank-answer">
-        {tilesPicked.length === 0 && <span className="bank-placeholder">아래 타일을 눌러 조립하세요</span>}
-        {tilesPicked.map((ti, i) => (
-          <button
-            key={i}
-            className="tile picked"
-            disabled={status !== 'answering'}
-            onClick={() => setTilesPicked(tilesPicked.filter((_, j) => j !== i))}
-          >
-            {ex.tiles[ti]}
-          </button>
-        ))}
-      </div>
-      <div className="bank-tiles">
-        {ex.tiles.map((t, i) => (
-          <button
-            key={i}
-            className={`tile ${tilesPicked.includes(i) ? 'used' : ''}`}
-            disabled={status !== 'answering' || tilesPicked.includes(i)}
-            onClick={() => setTilesPicked([...tilesPicked, i])}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ── 직접 타이핑 ──────────────────────────────
-function TypeView({
-  ex,
-  typed,
-  setTyped,
-  status,
-  onEnter,
-}: {
-  ex: Extract<Exercise, { kind: 'type' }>
-  typed: string
-  setTyped: (v: string) => void
-  status: Status
-  onEnter: () => void
-}) {
-  const ref = useRef<HTMLInputElement>(null)
-  useEffect(() => {
-    ref.current?.focus()
-  }, [])
-  return (
-    <div>
-      <div className="prompt-card">
-        <div className="prompt-text">
-          {ex.promptReading && <div className="reading">{ex.promptReading}</div>}
-          <div className="prompt-main">{ex.prompt}</div>
-        </div>
-      </div>
-      <input
-        ref={ref}
-        className="type-input"
-        value={typed}
-        disabled={status !== 'answering'}
-        placeholder="여기에 입력하세요"
-        onChange={(e) => setTyped(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') onEnter()
-        }}
-      />
-    </div>
-  )
-}
-
-// ── 짝 맞추기 ──────────────────────────────
-function MatchView({
-  pairs,
-  soundOn,
-  onDone,
-}: {
-  pairs: { a: string; b: string }[]
-  soundOn: boolean
-  onDone: () => void
-}) {
-  const left = useMemo(() => shuffleArr(pairs.map((p) => p.a)), [pairs])
-  const right = useMemo(() => shuffleArr(pairs.map((p) => p.b)), [pairs])
-  const [selA, setSelA] = useState<string | null>(null)
-  const [selB, setSelB] = useState<string | null>(null)
-  const [matched, setMatched] = useState<Set<string>>(new Set())
-  const [shake, setShake] = useState<string | null>(null)
-
-  function tryMatch(a: string | null, b: string | null) {
-    if (!a || !b) return
-    const pair = pairs.find((p) => p.a === a)
-    if (pair && pair.b === b) {
-      const next = new Set(matched)
-      next.add(a)
-      next.add(b)
-      setMatched(next)
-      setSelA(null)
-      setSelB(null)
-      if (next.size === pairs.length * 2) setTimeout(onDone, 300)
-    } else {
-      if (soundOn) playWrong()
-      setShake(a + b)
-      setTimeout(() => {
-        setShake(null)
-        setSelA(null)
-        setSelB(null)
-      }, 400)
-    }
-  }
-
-  return (
-    <div className="match-grid">
-      <div className="match-col">
-        {left.map((a) => (
-          <button
-            key={a}
-            className={`option match ${selA === a ? 'selected' : ''} ${matched.has(a) ? 'matched' : ''} ${shake && selA === a ? 'shake' : ''}`}
-            disabled={matched.has(a)}
-            onClick={() => {
-              setSelA(a)
-              tryMatch(a, selB)
-            }}
-          >
-            {a}
-          </button>
-        ))}
-      </div>
-      <div className="match-col">
-        {right.map((b) => (
-          <button
-            key={b}
-            className={`option match ${selB === b ? 'selected' : ''} ${matched.has(b) ? 'matched' : ''} ${shake && selB === b ? 'shake' : ''}`}
-            disabled={matched.has(b)}
-            onClick={() => {
-              setSelB(b)
-              tryMatch(selA, b)
-            }}
-          >
-            {b}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function shuffleArr<T>(arr: T[]): T[] {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
 }
