@@ -96,7 +96,7 @@ describe('migrateV1toV2', () => {
     const logs = JSON.parse(localStorage.getItem(LOG_KEY)!)
     expect(report.logsRekeyed).toBe(2)
     expect(logs[C1][0].note).toBe('1과 녹음')
-    expect(logs[C3][0].audioFile).toBe('2.webm')
+    expect(logs[C3][0].audioFiles).toEqual(['2.webm']) // v4에서 배열이 된다
     expect(logs['zh|zh-demo|0']).toBeUndefined()
   })
 
@@ -212,7 +212,7 @@ describe('v2 → v3 (언어 계층 폐기)', () => {
     const state = JSON.parse(localStorage.getItem(STATE_KEY)!)
     expect(state.lang).toBe('en')
     expect(state.courseId).toBeUndefined()
-    expect(state.schemaVersion).toBe(3)
+    expect(state.schemaVersion).toBe(SCHEMA_VERSION)
   })
 
   it('v1 데이터는 v3까지 한 번에 올라온다', () => {
@@ -231,9 +231,9 @@ describe('v2 → v3 (언어 계층 폐기)', () => {
     const report = migrate(builtin)
 
     expect(report.from).toBe(1)
-    expect(report.to).toBe(3)
+    expect(report.to).toBe(SCHEMA_VERSION)
     const state = JSON.parse(localStorage.getItem(STATE_KEY)!)
-    expect(state.schemaVersion).toBe(3)
+    expect(state.schemaVersion).toBe(SCHEMA_VERSION)
     expect(state.lang).toBe('zh')
     expect(state.courseId).toBeUndefined()
     expect(state.completed).toBeUndefined()
@@ -241,5 +241,59 @@ describe('v2 → v3 (언어 계층 폐기)', () => {
     expect(state.progress['zh-demo/c1'].markedDone).toBe(true) // v1 진도 전개
     expect(JSON.parse(localStorage.getItem(LOG_KEY)!)['zh-demo/c1']).toHaveLength(1) // v1 로그 이관
     expect(Array.isArray(JSON.parse(localStorage.getItem(BOOKS_KEY)!))).toBe(true) // v3 평평한 배열
+  })
+})
+
+
+describe('v3 → v4 (학습 기록 확장)', () => {
+  it('오디오·이미지 한 개짜리 필드를 배열로 옮긴다', () => {
+    localStorage.setItem(STATE_KEY, JSON.stringify({ schemaVersion: 3, lang: 'zh', srs: {}, progress: {} }))
+    localStorage.setItem(
+      LOG_KEY,
+      JSON.stringify({
+        'zh-demo/c1': [
+          { id: '1', date: '2026-07-01', note: '메모', audioFile: 'a.webm', imageFile: 'b.jpg' },
+          { id: '2', date: '2026-07-02' },
+        ],
+      })
+    )
+    const report = migrate(builtin)
+
+    expect(report.from).toBe(3)
+    const logs = JSON.parse(localStorage.getItem(LOG_KEY)!)
+    expect(logs['zh-demo/c1'][0].audioFiles).toEqual(['a.webm'])
+    expect(logs['zh-demo/c1'][0].imageFiles).toEqual(['b.jpg'])
+    expect(logs['zh-demo/c1'][0].audioFile).toBeUndefined()
+    // 첨부가 없던 기록은 빈 배열
+    expect(logs['zh-demo/c1'][1].audioFiles).toEqual([])
+    expect(logs['zh-demo/c1'][1].imageFiles).toEqual([])
+  })
+
+  it('메모는 그대로 두고 쓰기 연습으로 옮기지 않는다', () => {
+    // v3의 note가 한 줄 메모였는지 쓰기 연습이었는지 알 수 없다 — 있던 자리에 둔다
+    localStorage.setItem(STATE_KEY, JSON.stringify({ schemaVersion: 3, lang: 'zh', srs: {}, progress: {} }))
+    localStorage.setItem(LOG_KEY, JSON.stringify({ 'zh-demo/c1': [{ id: '1', date: '2026-07-01', note: '어제 쓴 것' }] }))
+    migrate(builtin)
+
+    const entry = JSON.parse(localStorage.getItem(LOG_KEY)!)['zh-demo/c1'][0]
+    expect(entry.note).toBe('어제 쓴 것')
+    expect(entry.writing).toBeUndefined()
+  })
+
+  it('v1 데이터가 v4까지 한 번에 올라온다', () => {
+    seedV1({ courseId: 'zh', srs: { 'zh|去': { level: 3, next: '2026-08-01', seen: 5, wrong: 1 } } }, {
+      'zh|zh-demo|0': [{ id: '1', date: '2026-07-01', audioFile: 'old.webm' }],
+    })
+    const report = migrate(builtin)
+
+    expect(report.from).toBe(1)
+    expect(report.to).toBe(SCHEMA_VERSION)
+    const state = JSON.parse(localStorage.getItem(STATE_KEY)!)
+    expect(state.schemaVersion).toBe(4)
+    expect(state.lang).toBe('zh')
+    expect(state.srs['zh-demo/c1/s1/w1'].level).toBe(3)
+    // 키는 챕터 id로, 첨부는 배열로
+    const entry = JSON.parse(localStorage.getItem(LOG_KEY)!)['zh-demo/c1'][0]
+    expect(entry.audioFiles).toEqual(['old.webm'])
   })
 })

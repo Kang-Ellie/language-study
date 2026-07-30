@@ -1,7 +1,7 @@
 // localStorage 기반 상태 저장 — 진행도 / SRS / 스트릭 / XP / 설정
 import type { ItemId } from '../types'
 
-export const SCHEMA_VERSION = 3
+export const SCHEMA_VERSION = 4
 
 export interface SrsEntry {
   level: number // 0~5 숙련도

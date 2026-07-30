@@ -11,6 +11,9 @@
 //   v2 → v3  언어(Course) 계층 폐기
 //              - 내 책 저장: Record<언어, 책[]> → 책[] (각 책이 lang을 가짐)
 //              - 상태:      courseId → lang
+//   v3 → v4  학습 기록 확장
+//              - audioFile/imageFile(각 1개) → audioFiles/imageFiles(배열)
+//              - 쓰기 연습(writing)을 메모(note)와 분리
 //
 // 되돌릴 수 없으므로 **첫 변환 전 원본 3개 키를 통째로 스냅샷**해 둔다(텍스트라 용량 부담 없음).
 // IndexedDB의 녹음·사진은 마이그레이션이 건드리지 않는다.
@@ -215,6 +218,38 @@ function stepV2toV3(store: Store, report: MigrationReport) {
   }
 }
 
+// ── v3 → v4 ─────────────────────────────────────────────
+
+interface LogEntryV3 {
+  id: string
+  date: string
+  note?: string
+  audioFile?: string
+  imageFile?: string
+}
+
+function stepV3toV4(store: Store) {
+  if (store.logs === null) return
+  const out: Record<string, unknown[]> = {}
+  for (const [chapterId, entries] of Object.entries(store.logs)) {
+    if (!Array.isArray(entries)) continue
+    out[chapterId] = entries.map((raw) => {
+      const e = raw as LogEntryV3 & { audioFiles?: string[]; imageFiles?: string[]; writing?: string }
+      return {
+        id: e.id,
+        date: e.date,
+        // v3의 note는 "한 줄 메모"였다. 쓰기 연습으로 옮기지 않는다 —
+        // 무엇을 적었는지 알 수 없으니 있던 자리에 그대로 둔다.
+        writing: e.writing,
+        note: e.note,
+        audioFiles: e.audioFiles ?? (e.audioFile ? [e.audioFile] : []),
+        imageFiles: e.imageFiles ?? (e.imageFile ? [e.imageFile] : []),
+      }
+    })
+  }
+  store.logs = out
+}
+
 // ── 진입점 ──────────────────────────────────────────────
 
 /**
@@ -253,6 +288,7 @@ export function migrate(builtin: Unit[]): MigrationReport {
 
   if (from < 2) stepV1toV2(store, builtin, report)
   if (from < 3) stepV2toV3(store, report)
+  if (from < 4) stepV3toV4(store)
 
   if (store.state === null) store.state = {}
   store.state.schemaVersion = SCHEMA_VERSION

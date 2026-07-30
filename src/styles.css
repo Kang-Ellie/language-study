@@ -398,3 +398,15 @@ code { font-family: var(--mono); background: var(--pink-soft); border-radius: 5p
 .node-bar { display: block; height: 6px; margin-top: 5px; border-radius: 999px; background: var(--pink-soft); overflow: hidden; }
 .node-bar-fill { display: block; height: 100%; background: var(--pink-deep); }
 .fill-line { color: var(--ink-soft); }
+
+/* ── 학습 기록: 쓰기 연습 · 여러 첨부 ─────────────── */
+.log-writing-input { width: 100%; border: var(--bd); border-radius: 12px; padding: 10px; font-family: inherit; font-size: 14px; line-height: 1.7; resize: vertical; }
+.log-writing { border-left: 4px solid var(--pink); background: var(--pink-soft); border-radius: 0 12px 12px 0; padding: 8px 12px; margin: 8px 0; }
+.log-writing-label { font-size: 11px; font-weight: 800; color: var(--pink-deep); margin-bottom: 4px; }
+.log-writing-text { margin: 0; font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
+.log-audios { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.log-images { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+.attach-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+.attach-x { border: none; background: transparent; color: var(--ink-soft); font-weight: 900; margin-left: 4px; cursor: pointer; font-size: 11px; }
+.attach-img { position: relative; display: inline-flex; align-items: flex-start; }
+.attach-img .attach-x { position: absolute; top: -4px; right: -4px; background: #fff; border: var(--bd); border-radius: 999px; width: 18px; height: 18px; line-height: 1; padding: 0; }
