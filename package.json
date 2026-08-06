@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:sql": "sh supabase/tests/run.sh",
     "data:migrate": "node scripts/migrate-data.mjs",
     "lint": "eslint src scripts --ext .ts,.tsx,.mjs"
   },
