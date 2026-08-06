@@ -4,11 +4,14 @@ import { LANGUAGES } from '../data'
 import { dueItems } from '../lib/srs'
 import { isCustomBook } from '../lib/books'
 import { bookMastery, pct } from '../lib/progress'
+import CheckInCard from './CheckInCard'
 import Marquee from './Marquee'
 import Taskbar from './Taskbar'
 
 interface Props {
   state: AppState
+  /** 학습 기록 변경 신호 — 인증 카드가 다시 세도록 */
+  logVersion: number
   setState: (fn: (s: AppState) => AppState) => void
   books: Unit[] // 지금 선택된 언어의 책만
   onOpenBook: (bookId: string) => void
@@ -33,7 +36,7 @@ function exeName(book: { id: string }): string {
   return `${base || 'BOOK'}.EXE`
 }
 
-export default function Shelf({ state, setState, books, onOpenBook, onNewBook, onStartReview, onProfile }: Props) {
+export default function Shelf({ state, setState, books, logVersion, onOpenBook, onNewBook, onStartReview, onProfile }: Props) {
   const due = dueItems(state, books)
   const language = LANGUAGES.find((l) => l.id === state.lang) ?? LANGUAGES[0]
   const goalPct = Math.min(100, Math.round((state.xpToday / state.dailyGoal) * 100))
@@ -67,6 +70,9 @@ export default function Shelf({ state, setState, books, onOpenBook, onNewBook, o
               {state.heartsEnabled && <span className="chip chip-green">💗 {state.hearts}</span>}
             </div>
             <div className="goal-bar"><div className="goal-fill" style={{ width: `${goalPct}%` }} /></div>
+
+            {/* 스터디 인증 — 퀴즈 XP보다 위. 이게 매일 하는 약속이다 */}
+            <CheckInCard state={state} version={logVersion} />
             {due.length > 0 && (
               <button className="review-banner" onClick={onStartReview}>
                 🔔 복습할 것 <b>{due.length}개</b> — 잊기 전에 복습해요! {state.heartsEnabled && state.hearts < 5 ? '(💗 회복)' : ''}

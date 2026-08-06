@@ -23,6 +23,8 @@ interface Props {
   onQuiz: (request: QuizRequest) => void
   onMarkDone: () => void
   onEdit: () => void
+  /** 학습 기록이 바뀌었을 때 */
+  onLogChange?: () => void
 }
 
 export default function ChapterPage({
@@ -35,6 +37,7 @@ export default function ChapterPage({
   onQuiz,
   onMarkDone,
   onEdit,
+  onLogChange,
 }: Props) {
   const sections = chapter.sections
   const chapterNo = book.lessons.findIndex((l) => l.id === chapter.id) + 1
@@ -110,7 +113,7 @@ export default function ChapterPage({
 
             <hr className="divider" />
 
-            <StudyLogTimeline lang={lang} chapterId={chapter.id} />
+            <StudyLogTimeline lang={lang} chapterId={chapter.id} onChange={onLogChange} />
           </div>
         </div>
       </div>

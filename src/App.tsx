@@ -47,6 +47,8 @@ export default function App({ report }: { report?: MigrationReport }) {
   const [state, setState] = useState<AppState>(loadState)
   const [view, setView] = useState<View>({ name: 'shelf' })
   const [bookVer, setBookVer] = useState(0) // 책 편집 후 새로고침용
+  // 학습 기록은 localStorage에 있어 리액트가 변경을 모른다 — 챕터를 떠날 때 세어 준다
+  const [logVer, setLogVer] = useState(0)
   const [notice, setNotice] = useState<string[]>(report?.ran ? (report.notes ?? []) : [])
 
   useEffect(() => {
@@ -177,6 +179,7 @@ export default function App({ report }: { report?: MigrationReport }) {
         state={state}
         onQuiz={(request) => startQuiz(request, { bookId: book.id, chapterId: chapter.id })}
         onMarkDone={() => setState((s) => toggleChapterDone(s, chapter.id))}
+        onLogChange={() => setLogVer((v) => v + 1)}
         onEdit={() => setView({ name: 'edit', bookId: book.id })}
       />
     )
@@ -206,6 +209,7 @@ export default function App({ report }: { report?: MigrationReport }) {
       state={state}
       setState={setState}
       books={langBooks}
+      logVersion={logVer}
       onOpenBook={(bookId) => setView({ name: 'book', bookId })}
       onNewBook={() => setView({ name: 'edit' })}
       onStartReview={() => setView({ name: 'lesson', request: defaultRequest({ type: 'review' }) })}

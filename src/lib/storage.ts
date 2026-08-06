@@ -1,5 +1,6 @@
 // localStorage 기반 상태 저장 — 진행도 / SRS / 스트릭 / XP / 설정
 import type { ItemId } from '../types'
+import type { CheckInRule } from './checkin'
 
 export const SCHEMA_VERSION = 4
 
@@ -35,6 +36,8 @@ export interface AppState {
   hearts: number
   heartsEnabled: boolean
   soundOn: boolean
+  /** 하루에 무엇을 해야 '인증 완료'인가 */
+  checkInRule: CheckInRule
   progress: Record<string, ChapterProgress> // chapterId → 진도
   srs: Record<ItemId, SrsEntry> // itemId → SRS
 }
@@ -71,6 +74,7 @@ export function defaults(): AppState {
     hearts: MAX_HEARTS,
     heartsEnabled: true,
     soundOn: true,
+    checkInRule: 'either',
     progress: {},
     srs: {},
   }

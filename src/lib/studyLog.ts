@@ -108,6 +108,11 @@ export async function deleteLogEntry(lang: string, chapterId: string, id: string
   ])
 }
 
+/** 모든 챕터의 학습 기록을 한 줄로 — 일일 인증 계산용 */
+export function allLogEntries(): LogEntry[] {
+  return Object.values(loadMap()).flat()
+}
+
 /** 이 책의 챕터 전체에서 학습 기록이 있었던 날짜 수 (책 카드 배지용) */
 export function bookLogDays(chapterIds: string[]): number {
   const map = loadMap()

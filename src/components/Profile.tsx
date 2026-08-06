@@ -5,6 +5,8 @@ import { learnedCount } from '../lib/srs'
 import { audioUsageMb } from '../lib/audioStore'
 import { imageUsageMb } from '../lib/imageStore'
 import { languageOf } from '../data'
+import { allLogEntries } from '../lib/studyLog'
+import { RULE_LABEL, checkInStreak, checkedDates, type CheckInRule } from '../lib/checkin'
 import BackupPanel from './BackupPanel'
 
 export default function Profile({
@@ -19,6 +21,9 @@ export default function Profile({
   onBack: () => void
 }) {
   const language = languageOf(state.lang)
+  const logEntries = allLogEntries()
+  const checked = checkedDates(logEntries, state.checkInRule)
+  const checkStreak = checkInStreak(logEntries, state.checkInRule)
   const [mp3Mb, setMp3Mb] = useState<number | null>(null)
   const [imgMb, setImgMb] = useState<number | null>(null)
   useEffect(() => {
@@ -56,6 +61,11 @@ export default function Profile({
           <div className="result-sub">최고 {state.bestStreak}일</div>
         </div>
         <div className="result-card">
+          <div className="result-label">✅ 인증 스트릭</div>
+          <div className="result-value">{checkStreak}일</div>
+          <div className="result-sub">{RULE_LABEL[state.checkInRule]}</div>
+        </div>
+        <div className="result-card">
           <div className="result-label">✨ 총 XP</div>
           <div className="result-value">{state.xp}</div>
         </div>
@@ -67,12 +77,16 @@ export default function Profile({
       </div>
 
       <section className="card">
-        <h3>🗓 스트릭 달력 (최근 8주)</h3>
+        <h3>🗓 달력 (최근 8주) <span className="cal-legend">✅ 인증 · ✨ 퀴즈</span></h3>
         <div className="calendar">
           {weeks.map((week, wi) => (
             <div key={wi} className="cal-week">
               {week.map((d, di) => (
-                <div key={di} className={`cal-day ${d && state.studyDays.includes(d) ? 'studied' : ''}`} title={d} />
+                <div
+                  key={di}
+                  className={`cal-day ${d && state.studyDays.includes(d) ? 'studied' : ''} ${d && checked.has(d) ? 'checked' : ''}`}
+                  title={d ? `${d}${checked.has(d) ? ' · ✅ 인증' : ''}` : undefined}
+                />
               ))}
             </div>
           ))}
@@ -93,6 +107,17 @@ export default function Profile({
             <option value={20}>기본 20 XP</option>
             <option value={30}>열심히 30 XP</option>
             <option value={50}>진심 50 XP</option>
+          </select>
+        </label>
+        <label className="setting-row">
+          <span>✅ 인증 기준</span>
+          <select
+            value={state.checkInRule}
+            onChange={(e) => setState((s) => ({ ...s, checkInRule: e.target.value as CheckInRule }))}
+          >
+            {(Object.keys(RULE_LABEL) as CheckInRule[]).map((r) => (
+              <option key={r} value={r}>{RULE_LABEL[r]}</option>
+            ))}
           </select>
         </label>
         <label className="setting-row">

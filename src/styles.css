@@ -434,3 +434,17 @@ code { font-family: var(--mono); background: var(--pink-soft); border-radius: 5p
 .vexample { color: var(--ink-soft); }
 .vnote { color: var(--pink-deep); font-weight: 700; }
 .vtip { color: var(--ink-soft); font-style: italic; }
+
+/* ── 오늘 스터디 인증 ─────────────────────────── */
+.checkin { display: flex; align-items: center; gap: 12px; border: var(--bd); border-radius: 14px; padding: 12px 14px; margin-top: 12px; background: #fff; box-shadow: var(--hard-sm); text-align: left; }
+.checkin.done { background: linear-gradient(135deg, var(--pink-soft), #fff); border-color: var(--pink); }
+.checkin-mark { font-size: 26px; line-height: 1; }
+.checkin-body { flex: 1; min-width: 0; }
+.checkin-title { font-weight: 800; font-size: 15px; }
+.checkin-sub { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+.checkin-stats { text-align: right; white-space: nowrap; }
+.checkin-streak { font-weight: 900; font-size: 15px; color: var(--pink-deep); }
+.checkin-rate { font-size: 11px; color: var(--ink-soft); }
+.cal-legend { font-size: 11px; font-weight: 700; color: var(--ink-soft); margin-left: 6px; }
+/* 인증한 날은 테두리로 — 퀴즈(칠하기)와 겹쳐 보여도 구분된다 */
+.cal-day.checked { border: 2px solid var(--pink-deep); }

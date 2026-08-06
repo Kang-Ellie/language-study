@@ -15,7 +15,14 @@ import { playMp3 } from '../lib/audio'
 import ImageThumb from './ImageThumb'
 import RecordButton from './RecordButton'
 
-export default function StudyLogTimeline({ lang, chapterId }: { lang: string; chapterId: string }) {
+interface Props {
+  lang: string
+  chapterId: string
+  /** 기록이 늘거나 줄면 알린다 — 인증 현황을 다시 세야 한다 */
+  onChange?: () => void
+}
+
+export default function StudyLogTimeline({ lang, chapterId, onChange }: Props) {
   const [log, setLog] = useState<LogEntry[]>([])
   const [showForm, setShowForm] = useState(false)
   const ns = logNamespace(lang)
@@ -31,6 +38,7 @@ export default function StudyLogTimeline({ lang, chapterId }: { lang: string; ch
   async function save(input: LogInput) {
     await addLogEntry(lang, chapterId, input)
     refresh()
+    onChange?.()
     setShowForm(false)
   }
 
@@ -38,6 +46,7 @@ export default function StudyLogTimeline({ lang, chapterId }: { lang: string; ch
     if (!confirm('이 기록을 지울까요? 딸린 녹음·사진도 함께 지워져요.')) return
     await deleteLogEntry(lang, chapterId, id)
     refresh()
+    onChange?.()
   }
 
   return (
