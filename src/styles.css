@@ -68,7 +68,7 @@ code { font-family: var(--mono); background: var(--pink-soft); border-radius: 5p
 .bar-blue { background: var(--blue); }
 .bar-purple { background: var(--purple); }
 .bar-yellow { background: var(--yellow); }
-.bar-dashed { background: repeating-linear-gradient(45deg, #fff, #fff 6px, var(--pink-soft) 6px, var(--pink-soft) 12px); }
+.bar-dashed { background: repeating-linear-gradient(45deg, #fff, #fff 10px, #fff4fa 10px, #fff4fa 20px); }
 .win-dots { display: flex; gap: 5px; }
 .win-dot { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--ink); display: inline-block; }
 .dot-r { background: var(--red); } .dot-y { background: #ffd25f; } .dot-g { background: var(--green); }
@@ -120,8 +120,25 @@ code { font-family: var(--mono); background: var(--pink-soft); border-radius: 5p
 .book-progress-fill { height: 100%; background: linear-gradient(90deg, var(--pink), #ffb3cd); }
 .book-foot { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; color: var(--ink-soft); }
 .open-link { color: var(--pink-deep); font-family: var(--mono); }
-.new-book .book-cover-emoji { background: transparent; border-style: dashed; }
-.new-body { align-items: center; text-align: center; justify-content: center; min-height: 150px; }
+.new-book .book-cover-emoji.new-cover {
+  /* align-self가 없으면 부모 정렬에 눌려 ＋ 한 글자 폭으로 쪼그라든다 */
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 74px;
+  padding: 0;
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--pink);
+  color: var(--pink-deep);
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+}
+.new-book:hover .new-cover { background: var(--pink-soft); }
+/* 진행바 자리를 비워 두면 카드 높이가 다른 카드와 어긋난다 */
+.book-progress-bar.ghost { visibility: hidden; }
 
 /* ── 브라우저 창(책 페이지) ── */
 .browser-win { }

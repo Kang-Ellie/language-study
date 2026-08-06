@@ -110,16 +110,26 @@ export default function Shelf({ state, setState, books, onOpenBook, onNewBook, o
             )
           })}
 
-          {/* 새 책 */}
+          {/* 새 책 — 다른 책 카드와 같은 골격을 쓴다. 커버만 점선 빈 칸으로. */}
           <button className="win book-win new-book" onClick={onNewBook}>
             <div className="win-bar bar-dashed">
+              <span className="win-dots"><i className="win-dot dot-r" /><i className="win-dot dot-y" /><i className="win-dot dot-g" /></span>
               <span className="win-title">NEW_BOOK.EXE</span>
               <span className="win-x static">＋</span>
             </div>
-            <div className="win-body book-body new-body">
-              <div className="book-cover-emoji">➕</div>
+            <div className="win-body book-body">
+              <div className="book-cover-emoji new-cover" aria-hidden>＋</div>
               <div className="book-win-title">새 책 추가</div>
-              <div className="book-tags"><span className="tag">직접 만들기 · AI JSON</span></div>
+              <div className="book-tags">
+                <span className="tag">✏️ 직접 만들기</span>
+                <span className="tag">🤖 AI JSON</span>
+              </div>
+              {/* 다른 카드의 진행바 자리 — 비워 두면 카드 높이가 어긋난다 */}
+              <div className="book-progress-bar ghost" />
+              <div className="book-foot">
+                <span>교재를 통째로 붙여넣어도 돼요</span>
+                <span className="open-link">START →</span>
+              </div>
             </div>
           </button>
         </div>
